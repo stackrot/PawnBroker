@@ -32,8 +32,12 @@ local function scenarios()
 	local p = assert(io.popen(cmd))
 	for line in p:lines() do
 		local name = line:match("^(.-)%.lua%s*$")
-		if name then
+		-- Names go into a shell command, so only plain ones are run.
+		if name and name:find("^[%w_%-]+$") then
 			names[#names + 1] = name
+		elseif name then
+			error("scenario names may only use letters, digits, _ and -: "
+				.. line, 0)
 		end
 	end
 	p:close()
