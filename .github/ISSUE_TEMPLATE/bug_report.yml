@@ -1,0 +1,63 @@
+name: Bug report
+description: Something in PawnBroker doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this.
+        The versions below matter: most problems come from a Pawn, Auctionator or game update.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: pawnbroker
+    attributes:
+      label: PawnBroker version
+      description: Shown in your addon manager, or in the AddOns list at character select.
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: pawn
+    attributes:
+      label: Pawn version
+    validations:
+      required: true
+  - type: input
+    id: auctionator
+    attributes:
+      label: Auctionator version
+    validations:
+      required: true
+  - type: input
+    id: game
+    attributes:
+      label: Game version
+      description: Type `/run print(GetBuildInfo())` in game and paste what it prints.
+      placeholder: 1.60.1 70755 ...
+    validations:
+      required: true
+  - type: input
+    id: scale
+    attributes:
+      label: Pawn scale
+      description: The scale named at the top of the PawnBroker window.
+      placeholder: "Mage: Fire"
+  - type: textarea
+    id: error
+    attributes:
+      label: Lua error
+      description: |
+        If the game showed an error, paste it here, from BugSack or the error window.
+        To make the game show errors, type `/console scriptErrors 1`.
+      render: text
+  - type: textarea
+    id: plan
+    attributes:
+      label: The plan
+      description: If the plan looks wrong, a screenshot of the window or its notes helps.
