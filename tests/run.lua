@@ -28,9 +28,10 @@ local function scenarios()
 	local cmd = windows
 		and ("dir /b " .. path(here .. "/scenarios/*.lua"))
 		or ("ls " .. path(here .. "/scenarios"))
-	local names = {}
+	local names, listing = {}, {}
 	local p = assert(io.popen(cmd))
 	for line in p:lines() do
+		listing[#listing + 1] = line
 		local name = line:match("^(.-)%.lua%s*$")
 		-- Names go into a shell command, so only plain ones are run.
 		if name and name:find("^[%w_%-]+$") then
@@ -41,6 +42,11 @@ local function scenarios()
 		end
 	end
 	p:close()
+	-- No scenarios would otherwise pass as a clean run.
+	if #names == 0 then
+		error("no scenarios found. " .. cmd .. " gave:\n"
+			.. table.concat(listing, "\n"), 0)
+	end
 	table.sort(names)
 	return names
 end
