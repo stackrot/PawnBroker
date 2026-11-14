@@ -11,6 +11,9 @@ picks the upgrades that add the most Pawn score for the gold you have.
 data. In game the window uses Blizzard's frame art and real item
 icons.</sub>
 
+PawnBroker is a separate addon, not made by or affiliated with the
+authors of Pawn or Auctionator. It needs both and builds on their data.
+
 ## Requirements
 
 - WoW: Forever
