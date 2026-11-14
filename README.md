@@ -5,11 +5,7 @@ to buy on the auction house. It scores every item in your last Auctionator
 scan with your Pawn scale, compares each one with what you're wearing, and
 picks the upgrades that add the most Pawn score for the gold you have.
 
-![The PawnBroker window planning upgrades for a level 18 mage](docs/plan.png)
-
-<sub>The screenshots are mockups drawn from the addon's output on its test
-data. In game the window uses Blizzard's frame art and real item
-icons.</sub>
+![The PawnBroker window in game, planning upgrades for a level 25 mage](docs/ingame.png)
 
 PawnBroker is a separate addon, not made by or affiliated with the
 authors of Pawn or Auctionator. It needs both and builds on their data.
@@ -59,6 +55,9 @@ vendor price. `/pb near 10s` changes the limit and `/pb near off` hides the
 list.
 
 ![Hovering an upgrade in the near vendor price list](docs/near.png)
+
+<sub>This and the next image are mockups drawn from the addon's output on
+its test data, not game screenshots.</sub>
 
 Tick Net cost, or type `/pb net`, to plan by net cost instead of AH price.
 The budget then caps what the plan costs you after selling everything on,
@@ -144,7 +143,7 @@ luajit tests/run.lua -v    # with chat output
 Releases are built by the
 [BigWigs packager](https://github.com/BigWigsMods/packager) from
 `.pkgmeta`, which leaves the tests, the docs and this README out of the
-package. The screenshots and the 400×400 avatar for addon sites come from
+package. The mockups and the 400×400 avatar for addon sites come from
 `docs/mockups/`, and the comment at the top of each file says how to
 render it.
 
