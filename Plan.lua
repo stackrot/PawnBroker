@@ -372,7 +372,8 @@ function ns.buyLine(r, money)
 		total, net, r.gain)
 end
 
--- Plain text for PawnBrokerDB.report, which Claude reads after a reload.
+-- A plain-text copy of the plan for PawnBrokerDB.report, readable from the
+-- saved variables file after a /reload.
 local function plainLines(r)
 	local out = { r.header }
 	if #r.chosen == 0 then
