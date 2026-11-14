@@ -8,3 +8,8 @@ ignore:
 manual-changelog:
   filename: CHANGELOG.md
   markup-type: markdown
+
+# CurseForge projects these need, by slug.
+required-dependencies:
+  - pawn
+  - auctionator
