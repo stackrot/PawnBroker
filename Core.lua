@@ -68,6 +68,15 @@ function ns.money(copper)
 	return table.concat(parts, " ")
 end
 
+-- An option's net cost, written with money (ns.money or ns.coins), or
+-- "free" when a vendor pays at least what the AH asks.
+function ns.netText(o, money)
+	if o.net <= 0 then
+		return "free"
+	end
+	return money(o.net)
+end
+
 -- Coin icons for chat. The global GetCoinTextureString is gone on this
 -- client; C_CurrencyInfo has it.
 local coinText = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString

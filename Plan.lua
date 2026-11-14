@@ -88,8 +88,9 @@ local function count(ctx, why)
 	ctx.skipped[why] = (ctx.skipped[why] or 0) + 1
 end
 
--- Adds o (name, link, search, price, listed) as an option when Pawn rates
--- it above what it would replace.
+-- Adds o (name, link, search, price, vendor, listed) as an option when Pawn
+-- rates it above what it would replace. Its net cost is what it costs once
+-- it's sold back to a vendor.
 local function offer(ctx, o, loc, beat, level)
 	local item = PawnGetItemData(o.link)
 	if not item then
@@ -102,6 +103,7 @@ local function offer(ctx, o, loc, beat, level)
 		return
 	end
 	o.gain, o.beat, o.level, o.group = gain, beat, level, ns.GROUPS[loc]
+	o.net = o.price - o.vendor
 	ctx.groups[o.group] = ctx.groups[o.group] or {}
 	table.insert(ctx.groups[o.group], o)
 end
@@ -113,7 +115,7 @@ end
 
 -- Each cached version of a random-suffix item is its own option. The
 -- shopping list searches the base name, which finds every version.
-local function offerVariants(ctx, id, loc, beat, level)
+local function offerVariants(ctx, id, loc, beat, level, vendor)
 	local variants, read = ns.variants(id)
 	if not variants then
 		if inScanRange(ctx, level) then
@@ -126,13 +128,14 @@ local function offerVariants(ctx, id, loc, beat, level)
 	for _, v in ipairs(variants) do
 		offer(ctx, {
 			name = v.link:match("%[(.-)%]") or base, link = v.link,
-			search = base, price = v.price, listed = v.count,
+			search = base, price = v.price, vendor = vendor,
+			listed = v.count,
 		}, loc, beat, level)
 	end
 end
 
 local function consider(ctx, id)
-	local name, link, quality, _, level, _, _, _, loc =
+	local name, link, quality, _, level, _, _, _, loc, _, sell =
 		C_Item.GetItemInfo(id)
 	if not link then
 		return count(ctx, "unread")
@@ -147,13 +150,14 @@ local function consider(ctx, id)
 		return count(ctx, "unusable")
 	end
 	if verdict.random then
-		return offerVariants(ctx, id, loc, beat, level)
+		return offerVariants(ctx, id, loc, beat, level, sell or 0)
 	end
 	local price = Auctionator.API.v1.GetAuctionPriceByItemID(ns.ADDON, id)
 	if price then
 		offer(ctx, {
 			name = name, link = link, search = '"' .. name .. '"',
-			price = price, listed = ns.listed(ctx.db, id),
+			price = price, vendor = sell or 0,
+			listed = ns.listed(ctx.db, id),
 		}, loc, beat, level)
 	end
 end
@@ -252,8 +256,9 @@ function ns.percent(o)
 end
 
 local function describe(o)
-	return string.format("%s: %s %s, +%.1f Pawn (%s), req %d%s", o.group,
-		o.name, ns.money(o.price), o.gain, ns.percent(o), o.level,
+	return string.format("%s: %s %s, net %s, +%.1f Pawn (%s), req %d%s",
+		o.group, o.name, ns.money(o.price), ns.netText(o, ns.money), o.gain,
+		ns.percent(o), o.level,
 		o.listed and (", " .. o.listed .. " listed") or "")
 end
 

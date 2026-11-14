@@ -4,17 +4,28 @@
 
 local _, ns = ...
 
-local WIDTH, HEIGHT = 640, 480
 local ROW = 22
 local PAD = 14
 local COLUMNS = {	-- key, title, width, justify
 	{ "slot", "Slot", 64, "LEFT" },
-	{ "item", "Item", 250, "LEFT" },
+	{ "item", "Item", 236, "LEFT" },
 	{ "price", "Price", 92, "RIGHT" },
+	{ "net", "Net", 84, "RIGHT" },
 	{ "gain", "Pawn gain", 104, "RIGHT" },
 	{ "req", "Req", 34, "RIGHT" },
 	{ "listed", "Listed", 46, "RIGHT" },
 }
+local GAP = 6	-- between columns
+local SCROLLBAR = 30
+-- Wide enough for every column beside the row icon.
+local WIDTH = (function()
+	local w = ROW + 2
+	for _, c in ipairs(COLUMNS) do
+		w = w + c[3] + GAP
+	end
+	return w + 2 * PAD + SCROLLBAR
+end)()
+local HEIGHT = 480
 local ICON = 133784	-- a gold coin, for the portrait
 local BUDGET_HELP = "Budget: blank for the gold you carry, 1g50s, 50s, "
 	.. "or all."
@@ -82,8 +93,14 @@ local function rowEnter(row)
 		return
 	end
 	GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
-	GameTooltip:SetHyperlink(row.option.link)
+	local o = row.option
+	GameTooltip:SetHyperlink(o.link)
 	GameTooltip:AddLine(" ")
+	if o.vendor > 0 then
+		GameTooltip:AddLine(string.format("Vendors for %s, so it costs %s "
+			.. "once you sell it on.", ns.coins(o.vendor),
+			ns.netText(o, ns.coins)), 1, 1, 1, true)
+	end
 	GameTooltip:AddLine("Click to search the AH, shift-click to link.",
 		0.6, 0.6, 0.6)
 	GameTooltip:Show()
@@ -115,7 +132,7 @@ local function newRow(parent)
 		cell:SetPoint("LEFT", x, 0)
 		cell:SetWidth(c[3])
 		row.cells[c[1]] = cell
-		x = x + c[3] + 6
+		x = x + c[3] + GAP
 	end
 	row.title = text(row, "GameFontNormal")
 	row.title:SetPoint("LEFT", 4, 0)
@@ -156,6 +173,7 @@ local function fillOption(r, o)
 	r.cells.slot:SetText(o.group)
 	r.cells.item:SetText(o.link)
 	r.cells.price:SetText(ns.coins(o.price))
+	r.cells.net:SetText(ns.netText(o, ns.coins))
 	r.cells.gain:SetText(string.format("+%.1f (%s)", o.gain, pct))
 	r.cells.req:SetText(o.level)
 	r.cells.listed:SetText(o.listed or "")
@@ -233,7 +251,7 @@ local function columns(top)
 		head:SetPoint("TOPLEFT", x, top)
 		head:SetWidth(c[3])
 		head:SetText(c[2])
-		x = x + c[3] + 6
+		x = x + c[3] + GAP
 	end
 end
 
@@ -250,7 +268,7 @@ local function listArea(top, bottom)
 	scroll:SetPoint("TOPLEFT", 6, -4)
 	scroll:SetPoint("BOTTOMRIGHT", -24, 4)
 	f.list = CreateFrame("Frame", nil, scroll)
-	f.list:SetSize(WIDTH - 2 * PAD - 30, 1)
+	f.list:SetSize(WIDTH - 2 * PAD - SCROLLBAR, 1)
 	scroll:SetScrollChild(f.list)
 	f.rows = {}
 end
