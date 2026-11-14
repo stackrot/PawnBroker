@@ -125,7 +125,7 @@ luajit tests/run.lua -v    # with chat output
 CI runs them on Ubuntu and Windows for every push.
 Pushing a version tag such as `v0.1.1` runs the tests again, then the [BigWigs packager](https://github.com/BigWigsMods/packager) builds the release from `.pkgmeta` and posts it to GitHub and CurseForge.
 The package leaves out the tests, the docs and this README.
-The mockups and the 400×400 avatar for addon sites come from `docs/mockups/`, and the comment at the top of each file says how to render it.
+The 400×400 avatar for addon sites comes from `docs/mockups/logo.html`, and the comment at the top of that file says how to render it.
 
 ## AI use
 
