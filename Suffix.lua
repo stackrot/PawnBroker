@@ -92,8 +92,10 @@ local function wanted(id, level, now)
 	if not verdict.random or verdict.unusable then
 		return false
 	end
+	-- Pawn has nothing for a base item without stats, such as a ring
+	-- whose stats all come from its suffix, and those have no armour type.
 	local item = PawnGetItemData(link)
-	return item ~= nil and PawnIsArmorBestTypeForPlayer(item)
+	return item == nil or PawnIsArmorBestTypeForPlayer(item)
 end
 
 -- Cheapest listing of each version, by the name the suffix gives it.

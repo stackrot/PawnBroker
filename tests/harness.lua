@@ -189,9 +189,12 @@ end }
 PawnCommon = { Scales = { ['"Classic":MAGE2'] = { Values = {} } } }
 function PawnIsScaleVisible() return true end
 function PawnGetScaleLocalizedName() return "Mage: Fire" end
+-- Like Pawn, nothing for an item without stats, such as the base version
+-- of a random-suffix ring.
 function PawnGetItemData(link)
 	local m = MOCK[idOf(link)]
-	return m and { stats = statsOf(link) }
+	local stats = m and statsOf(link)
+	return stats and next(stats) and { stats = stats } or nil
 end
 -- UNREADABLE[slot] = n: the item loads after n reads. STATLESS[slot]: it
 -- has loaded but has no stats, so Pawn has nothing for it either.
