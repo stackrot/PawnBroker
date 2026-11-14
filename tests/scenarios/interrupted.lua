@@ -17,4 +17,4 @@ assert(NS.suffixNotice():find("3 levels past"))
 LEVEL = nil
 advanceClock(8 * 86400)
 fire("PLAYER_LOGIN")
-assert(next(PawnBrokerDB.suffix["CAMWOW EU5 Realm 1 PvE"]) == nil)
+assert(next(PawnBrokerDB.suffix["Test Realm"]) == nil)

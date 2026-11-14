@@ -7,7 +7,7 @@ NS.ui.budget:SetText("") NS.ui.ahead:SetText("")
 pb("scan") run(clock() + 3)
 assert(NS.ui.scanButton.text == "Stop scan")
 run()
-local scan = PawnBrokerDB.scans["Chip Panfire-CAMWOW EU5 Realm 1 PvE"]
+local scan = PawnBrokerDB.scans["Tester-Test Realm"]
 assert(scan.items == 84 and scan.versions == 345 and scan.failed == 0,
 	scan.items .. " " .. scan.versions .. " " .. scan.failed)
 assert(STATS.dropped > 0 and STATS.more > 0)

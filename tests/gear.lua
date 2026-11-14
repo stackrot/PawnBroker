@@ -1,4 +1,4 @@
--- Chip Panfire's gear and gold at level 18, from a ForeverTune dump.
+-- A level 18 mage's gear and gold, from a real character dump.
 ForeverTuneDB = { gear = {
 	[1] = 18,
 	[2] = {

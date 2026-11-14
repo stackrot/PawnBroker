@@ -136,8 +136,8 @@ Enum = {}
 function strtrim(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
 function GetMoney() return gear[3] end
 function UnitLevel() return LEVEL or gear[1] end
-function UnitName() return "Chip Panfire" end
-function GetRealmName() return "CAMWOW EU5 Realm 1 PvE" end
+function UnitName() return "Tester" end
+function GetRealmName() return "Test Realm" end
 C_CurrencyInfo = { GetCoinTextureString = function(c) return "<" .. c .. "c>" end }
 function geterrorhandler() return function(e) error("addon error: " .. tostring(e), 0) end end
 function GetInventoryItemLink(_, slot) return EQUIPPED[slot] and EQUIPPED[slot].link end
