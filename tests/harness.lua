@@ -50,6 +50,8 @@ local function widget()
 	function w.CreateTexture() return widget() end
 	function w.GetPortrait() return widget() end
 	function w.SetEnabled(self, e) self.enabled = e end
+	function w.SetChecked(self, c) self.checked = c and true or false end
+	function w.GetChecked(self) return self.checked end
 	return setmetatable(w, { __index = function(_, k) if type(k) == "string" and k:match("^%u") then return function() end end end })
 end
 function CreateFrame(kind, name, parent, template)

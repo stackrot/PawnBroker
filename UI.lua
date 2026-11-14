@@ -30,6 +30,9 @@ local ICON = 133784	-- a gold coin, for the portrait
 local BUDGET_HELP = "Budget: blank for the gold you carry, 1g50s, 50s, "
 	.. "or all."
 local NEAR_HELP = "Near vendor price: /pb near 10s, or /pb near off."
+local NET_HELP = "Plan by net cost: what each item costs once you sell it "
+	.. "to a vendor. The budget then caps the net total, not what you pay "
+	.. "up front."
 
 local f	-- the window
 
@@ -198,8 +201,7 @@ local function render(plan)
 		add(fillTitle, "Nothing in the scan beats your gear within "
 			.. "budget.", GREY)
 	else
-		add(fillTitle, string.format("Buy %d for %s, +%.1f Pawn",
-			#plan.chosen, ns.coins(plan.total), plan.gain), GOLD)
+		add(fillTitle, ns.buyLine(plan, ns.coins), GOLD)
 	end
 	for _, o in ipairs(plan.chosen) do
 		add(fillOption, o, plan.nearLimit)
@@ -245,8 +247,22 @@ local function controls()
 	f.ahead:SetNumeric(true)
 	f.ahead:SetMaxLetters(2)
 	f.ahead:SetText(ui.ahead or "")
+	f.net = CreateFrame("CheckButton", nil, f, "UICheckButtonTemplate")
+	f.net:SetSize(24, 24)
+	f.net:SetPoint("LEFT", f.ahead, "RIGHT", 10, 0)
+	f.net:SetChecked(ui.net == true)
+	f.net:SetScript("OnClick", function() f:Plan() end)
+	f.net:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetText(NET_HELP, 1, 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	f.net:SetScript("OnLeave", GameTooltip_Hide)
+	local net = text(f, "GameFontNormalSmall")
+	net:SetPoint("LEFT", f.net, "RIGHT", 2, 0)
+	net:SetText("Net cost")
 	f.planButton = button(f, "Plan", 80, function() f:Plan() end)
-	f.planButton:SetPoint("LEFT", f.ahead, "RIGHT", 14, 0)
+	f.planButton:SetPoint("LEFT", net, "RIGHT", 14, 0)
 	f.scanButton = button(f, "Scan suffixes", 120, function()
 		if ns.scanning() then
 			ns.stopScan()
@@ -348,13 +364,16 @@ end
 function methods:Plan(note)
 	local budget = strtrim(self.budget:GetText())
 	local ahead = tonumber(self.ahead:GetText()) or 0
-	local opts = ns.parse(budget .. (ahead > 0 and (" +" .. ahead) or ""))
+	local net = self.net:GetChecked() and true or false
+	local opts = ns.parse(budget .. (ahead > 0 and (" +" .. ahead) or "")
+		.. (net and " net" or ""))
 	if not opts then
 		self:Show()
 		return self:SetStatus(BUDGET_HELP)
 	end
 	local ui = settings()
 	ui.budget, ui.ahead = budget, ahead > 0 and tostring(ahead) or ""
+	ui.net = net
 	-- false turns the near-vendor list off; unset means the default.
 	if ui.near ~= false then
 		opts.near = ui.near or ns.NEAR
@@ -378,7 +397,7 @@ end
 
 -- Fills the controls from a /pb command line, then plans.
 function methods:PlanFrom(msg)
-	local budget, ahead = {}, ""
+	local budget, ahead, net = {}, "", false
 	local words = {}
 	for word in msg:gmatch("%S+") do
 		words[#words + 1] = word
@@ -389,6 +408,8 @@ function methods:PlanFrom(msg)
 		local n = word:match("^%+(%d+)$")
 		if n then
 			ahead = n
+		elseif word:lower() == "net" then
+			net = true
 		elseif word:lower() == "near" then
 			local limit = nearLimit(words[i + 1])
 			if limit == nil then
@@ -404,6 +425,7 @@ function methods:PlanFrom(msg)
 	end
 	self.budget:SetText(table.concat(budget, " "))
 	self.ahead:SetText(ahead)
+	self.net:SetChecked(net)
 	self:Plan()
 end
 

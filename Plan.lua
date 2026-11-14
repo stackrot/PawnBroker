@@ -164,11 +164,12 @@ local function consider(ctx, id)
 end
 
 -- Cheapest first, dropping anything a cheaper option already beats, so
--- the strongest option is always last.
+-- the strongest option is always last. Cost is the price, or the net cost
+-- when planning by net cost.
 local function frontier(options)
 	table.sort(options, function(a, b)
-		if a.price ~= b.price then
-			return a.price < b.price
+		if a.cost ~= b.cost then
+			return a.cost < b.cost
 		end
 		return a.gain > b.gain
 	end)
@@ -186,7 +187,7 @@ end
 local function bestWith(best, options, c, unit)
 	local gain, pick = best[c], 0
 	for i, o in ipairs(options) do
-		local w = math.ceil(o.price / unit)
+		local w = math.ceil(o.cost / unit)
 		if w <= c and best[c - w] + o.gain > gain then
 			gain, pick = best[c - w] + o.gain, i
 		end
@@ -194,8 +195,8 @@ local function bestWith(best, options, c, unit)
 	return gain, pick
 end
 
--- Multiple-choice knapsack: at most one option per group, total price
--- within budget, total gain as high as possible. Prices round up to the
+-- Multiple-choice knapsack: at most one option per group, total cost
+-- within budget, total gain as high as possible. Costs round up to the
 -- bucket size, so a plan never goes over.
 local function knapsack(groups, budget)
 	local unit = math.max(1, math.ceil(budget / BUCKETS))
@@ -216,7 +217,7 @@ local function knapsack(groups, budget)
 		local o = groups[g][picks[g][c]]
 		if o then
 			chosen[#chosen + 1] = o
-			c = c - math.ceil(o.price / unit)
+			c = c - math.ceil(o.cost / unit)
 		end
 	end
 	return chosen
@@ -261,7 +262,7 @@ local function nearVendor(ctx, chosen)
 	for group, options in pairs(ctx.groups) do
 		local best
 		for _, o in ipairs(options) do
-			if o.net <= ctx.near and (not ctx.budget or o.price <= ctx.budget)
+			if o.net <= ctx.near and (not ctx.budget or o.cost <= ctx.budget)
 					and (not best or o.gain > best.gain) then
 				best = o
 			end
@@ -304,8 +305,8 @@ local function header(ctx)
 	local budget = ctx.budget and ns.money(ctx.budget) or "unlimited"
 	local age = ctx.age == 0 and "today's AH scan"
 		or (ctx.age .. "-day-old AH scan")
-	return string.format("%s, level %d%s, budget %s, %s.", scale,
-		ctx.level, ahead, budget, age)
+	return string.format("%s, level %d%s, %sbudget %s, %s.", scale,
+		ctx.level, ahead, ctx.net and "net " or "", budget, age)
 end
 
 local function unreadLine(base)
@@ -359,14 +360,25 @@ local function shoppingList(chosen)
 	Auctionator.API.v1.CreateShoppingList(ns.ADDON, ns.ADDON, terms)
 end
 
+-- "Buy 2 for 1g 40s (net 1g 5s), +24.3 Pawn", led by the net cost when the
+-- plan was made by it. money is ns.money or ns.coins.
+function ns.buyLine(r, money)
+	local total, net = money(r.total), ns.netText({ net = r.net }, money)
+	if r.byNet then
+		return string.format("Buy %d for %s net (%s up front), +%.1f Pawn",
+			#r.chosen, net, total, r.gain)
+	end
+	return string.format("Buy %d for %s (net %s), +%.1f Pawn", #r.chosen,
+		total, net, r.gain)
+end
+
 -- Plain text for PawnBrokerDB.report, which Claude reads after a reload.
 local function plainLines(r)
 	local out = { r.header }
 	if #r.chosen == 0 then
 		out[#out + 1] = NOTHING
 	else
-		out[#out + 1] = string.format("Buy %d for %s, +%.1f Pawn:",
-			#r.chosen, ns.money(r.total), r.gain)
+		out[#out + 1] = ns.buyLine(r, ns.money) .. ":"
 	end
 	for _, o in ipairs(r.chosen) do
 		out[#out + 1] = "  " .. describe(o)
@@ -393,12 +405,17 @@ end
 local function report(ctx, chosen, over)
 	local r = { header = header(ctx), chosen = chosen, over = over,
 		near = nearVendor(ctx, chosen), nearLimit = ctx.near,
-		notes = {}, total = 0, gain = 0 }
+		byNet = ctx.net, notes = {}, total = 0, net = 0, gain = 0 }
 	for _, o in ipairs(chosen) do
-		r.total, r.gain = r.total + o.price, r.gain + o.gain
+		r.total, r.net = r.total + o.price, r.net + o.net
+		r.gain = r.gain + o.gain
 	end
 	local function note(text)
 		r.notes[#r.notes + 1] = text
+	end
+	if ctx.net and r.total > GetMoney() then
+		note(string.format("That plan needs %s up front; you carry %s.",
+			ns.money(r.total), ns.money(GetMoney())))
 	end
 	note(unreadLine(ctx.base))
 	note(suffixLine(ctx))
@@ -416,6 +433,9 @@ local function finish(ctx)
 	busy = false
 	local groups = {}
 	for _, options in pairs(ctx.groups) do
+		for _, o in ipairs(options) do
+			o.cost = ctx.net and math.max(0, o.net) or o.price
+		end
 		groups[#groups + 1] = frontier(options)
 	end
 	local chosen = ctx.budget and knapsack(groups, ctx.budget)
@@ -443,7 +463,7 @@ local function prepare(opts)
 		db = db, scale = scale, visible = visible,
 		ids = ids, age = age, level = level,
 		maxLevel = level + opts.ahead, budget = opts.budget,
-		near = opts.near,
+		near = opts.near, net = opts.net,
 		groups = {}, skipped = {}, unscanned = 0,
 	}
 end
@@ -506,8 +526,9 @@ function ns.copper(word)
 	return g * 10000 + s * 100 + c
 end
 
--- "", "1g50s", "all +2": the budget defaults to the gold you carry, "all"
--- lifts it, and +N includes items up to N levels above yours.
+-- "", "1g50s", "all +2", "net": the budget defaults to the gold you carry,
+-- "all" lifts it, +N includes items up to N levels above yours, and "net"
+-- plans by net cost (what's left after selling the items to a vendor).
 function ns.parse(msg)
 	local opts = { ahead = 0, budget = GetMoney() }
 	for word in msg:lower():gmatch("%S+") do
@@ -516,6 +537,8 @@ function ns.parse(msg)
 			opts.ahead = tonumber(ahead)
 		elseif word == "all" then
 			opts.budget = nil
+		elseif word == "net" then
+			opts.net = true
 		elseif word:find("^[%dgsc]+$") and word:find("%d[gsc]") then
 			opts.budget = ns.copper(word)
 		else
