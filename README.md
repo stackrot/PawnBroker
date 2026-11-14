@@ -144,8 +144,9 @@ luajit tests/run.lua -v    # with chat output
 Releases are built by the
 [BigWigs packager](https://github.com/BigWigsMods/packager) from
 `.pkgmeta`, which leaves the tests, the docs and this README out of the
-package. The screenshots come from `docs/mockups/window.html`, and the
-comment at its top says how to render them.
+package. The screenshots and the 400×400 avatar for addon sites come from
+`docs/mockups/`, and the comment at the top of each file says how to
+render it.
 
 ## Licence
 

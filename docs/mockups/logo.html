@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+The PawnBroker avatar for addon sites (CurseForge wants 400x400). Original
+art, no game assets. Render with a headless browser, for example:
+  chromium --headless --hide-scrollbars --window-size=400,400
+    --screenshot=docs/logo.png "file://$PWD/docs/mockups/logo.html"
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PawnBroker logo</title>
+<style>
+	html, body {
+		margin: 0;
+		width: 400px;
+		height: 400px;
+		overflow: hidden;
+		background: radial-gradient(circle at 50% 35%, #2f3a52, #10141d 75%);
+	}
+	.coin {
+		position: absolute;
+		left: 60px;
+		top: 60px;
+		width: 280px;
+		height: 280px;
+		border-radius: 50%;
+		background: radial-gradient(circle at 38% 32%, #fff3b0, #f2c230 35%, #b8860b 75%, #6b4a0a);
+		box-shadow: 0 10px 30px #000a, inset 0 0 0 10px #d9a520,
+			inset 0 0 0 14px #8a6510;
+	}
+	.mark {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 88px;
+		text-align: center;
+		font: bold 104px/1 "DejaVu Serif", serif;
+		color: #6b4a0a;
+		text-shadow: 0 2px 0 #ffe58a;
+		letter-spacing: -4px;
+	}
+	.arrow {
+		position: absolute;
+		right: 34px;
+		bottom: 30px;
+		width: 120px;
+		height: 120px;
+		border-radius: 50%;
+		background: #10141d;
+		box-shadow: 0 0 0 6px #10141d;
+	}
+	.arrow::before {
+		content: "";
+		position: absolute;
+		left: 22px;
+		top: 12px;
+		border-left: 38px solid transparent;
+		border-right: 38px solid transparent;
+		border-bottom: 50px solid #3ddc4a;
+	}
+	.arrow::after {
+		content: "";
+		position: absolute;
+		left: 44px;
+		top: 60px;
+		width: 32px;
+		height: 46px;
+		background: #3ddc4a;
+		border-radius: 0 0 4px 4px;
+	}
+</style>
+</head>
+<body>
+<div class="coin"><div class="mark">PB</div></div>
+<div class="arrow"></div>
+</body>
+</html>
