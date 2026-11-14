@@ -86,8 +86,85 @@ function ns.coins(copper)
 	return coinText and coinText(copper) or ns.money(copper)
 end
 
+-- Saved data can be from an older version or edited by hand, so anything
+-- of the wrong type is dropped before the addon relies on it.
+local function isNumber(v)
+	return type(v) == "number" and v == v and v ~= math.huge
+		and v ~= -math.huge
+end
+
+local function cleanUI(ui)
+	if type(ui.budget) ~= "string" then
+		ui.budget = nil
+	end
+	if type(ui.ahead) ~= "string" then
+		ui.ahead = nil
+	end
+	if type(ui.net) ~= "boolean" then
+		ui.net = nil
+	end
+	if ui.near ~= false and not (isNumber(ui.near) and ui.near >= 0) then
+		ui.near = nil
+	end
+end
+
+local function validVariant(v)
+	return type(v) == "table" and type(v.link) == "string"
+		and isNumber(v.price) and (v.count == nil or isNumber(v.count))
+end
+
+local function validEntry(e)
+	if type(e) ~= "table" or not isNumber(e.time)
+			or type(e.variants) ~= "table" then
+		return false
+	end
+	for _, v in ipairs(e.variants) do
+		if not validVariant(v) then
+			return false
+		end
+	end
+	return true
+end
+
+-- Removes every value in t that keep rejects.
+local function filter(t, keep)
+	for k, v in pairs(t) do
+		if not keep(v) then
+			t[k] = nil
+		end
+	end
+end
+
+local function clean(db)
+	for _, key in ipairs({ "ui", "scans", "suffix", "report" }) do
+		if db[key] ~= nil and type(db[key]) ~= "table" then
+			db[key] = nil
+		end
+	end
+	if db.ui then
+		cleanUI(db.ui)
+	end
+	filter(db.scans or {}, function(s)
+		return type(s) == "table" and isNumber(s.time) and isNumber(s.level)
+	end)
+	filter(db.suffix or {}, function(items)
+		if type(items) ~= "table" then
+			return false
+		end
+		filter(items, validEntry)
+		return true
+	end)
+end
+
+local checked	-- the PawnBrokerDB table clean() last ran on
 function ns.db()
-	PawnBrokerDB = PawnBrokerDB or {}
+	if type(PawnBrokerDB) ~= "table" then
+		PawnBrokerDB = {}
+	end
+	if checked ~= PawnBrokerDB then
+		clean(PawnBrokerDB)
+		checked = PawnBrokerDB
+	end
 	return PawnBrokerDB
 end
 
