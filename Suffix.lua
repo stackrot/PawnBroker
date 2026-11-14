@@ -126,7 +126,7 @@ local function readVariants(key)
 	return variants
 end
 
-local send, advance
+local send, advance, guarded
 
 local function retry(s)
 	s.tries = s.tries + 1
@@ -143,7 +143,7 @@ local function await(s)
 	s.token = token
 	C_Timer.After(TIMEOUT, function()
 		if scan == s and s.token == token then
-			retry(s)
+			guarded(retry, s)
 		end
 	end)
 end
@@ -169,13 +169,25 @@ local function stop(s, why)
 		.. "where it left off.", why, s.i - 1, #s.ids))
 end
 
+-- Runs fn(...) for a timer or event. An error ends the running scan, so it
+-- can't stay stuck as running, and goes to the error handler (BugSack).
+function guarded(fn, ...)
+	local ok, err = pcall(fn, ...)
+	if not ok then
+		if scan then
+			stop(scan, "Something went wrong")
+		end
+		geterrorhandler()(err)
+	end
+end
+
 local function later(s)
 	s.waits = s.waits + 1
 	if s.waits > WAIT_TICKS then
 		s.failed = s.failed + 1
 		return advance(s)
 	end
-	C_Timer.After(0.1, function() send(s) end)
+	C_Timer.After(0.1, function() guarded(send, s) end)
 end
 
 -- The AH ignores searches for item keys the client hasn't cached, and
@@ -375,6 +387,6 @@ frame:SetScript("OnEvent", function(_, event, ...)
 		ahOpen = false
 		changed()
 	else
-		onResults(...)
+		guarded(onResults, ...)
 	end
 end)
