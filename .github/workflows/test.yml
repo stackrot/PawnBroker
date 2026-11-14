@@ -23,4 +23,13 @@ jobs:
       - uses: leafo/gh-actions-lua@32909a2dea0a48c433aec79e7fcd31b4cd55800f # v13.1.0
         with:
           luaVersion: "luajit-2.1"
-      - run: luajit tests/run.lua
+      # On Windows the setup action's bin/luajit has no .exe, which PowerShell
+      # hands to Windows to open instead of running, so nothing runs and the
+      # step still passes. lua(.exe) is the same LuaJIT on every OS, and the
+      # grep fails the job unless scenarios really ran.
+      - name: Tests
+        shell: bash
+        run: |
+          lua -v
+          lua tests/run.lua | tee test.log
+          grep -q '^ok ' test.log
