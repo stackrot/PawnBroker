@@ -217,6 +217,19 @@ Views: plan and net at 824x520, near at 1060x520.
 	}
 	.tooltip .name { font-size: 13.5px; color: var(--uncommon); }
 	.tooltip .hint { color: #999; }
+	/* Mod sites want a visible disclaimer on images that aren't the real
+	   thing, so every view carries this badge. */
+	.badge {
+		position: absolute;
+		right: 26px;
+		bottom: 3px;
+		padding: 1px 8px;
+		border-radius: 8px;
+		background: #000a;
+		border: 1px solid #ffffff40;
+		font-size: 11px;
+		color: #ddd;
+	}
 </style>
 </head>
 <body>
@@ -415,6 +428,7 @@ if (view === "net") {
 } else {
 	stage.innerHTML = window_(plan, 0);
 }
+stage.innerHTML += '<div class="badge">Mockup, not a game screenshot</div>';
 </script>
 </body>
 </html>
