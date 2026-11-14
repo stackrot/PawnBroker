@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: PawnBroker
+## Notes: Plans the best gear to buy from your Auctionator scan, scored by Pawn. /pb
+## Dependencies: Pawn, Auctionator
+## SavedVariables: PawnBrokerDB
+
+Core.lua
+Suffix.lua
+Plan.lua
+UI.lua
+Main.lua
