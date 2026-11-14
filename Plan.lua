@@ -511,11 +511,16 @@ local function run(opts)
 	ns.status(string.format("checking %d items...", #ctx.ids))
 	loadGear()
 	readGear(ctx, 0, function()
-		ns.loadItems(ctx.ids, function()
+		-- An error here would otherwise leave busy set until a /reload.
+		local ok, e = pcall(ns.loadItems, ctx.ids, function()
 			ns.each(ctx.ids, function(id) consider(ctx, id) end,
 				function() finish(ctx) end,
 				function() busy = false end)
 		end, loading)
+		if not ok then
+			busy = false
+			geterrorhandler()(e)
+		end
 	end)
 end
 
