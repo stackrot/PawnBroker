@@ -337,8 +337,7 @@ end
 
 local function suffixLine(ctx)
 	if ctx.unscanned > 0 then
-		return ctx.unscanned .. " random-suffix items for your level "
-			.. "aren't priced yet. Scan suffixes with the AH open."
+		return ctx.unscanned .. " random-suffix items for your level aren't priced yet. Scan suffixes with the AH open."
 	end
 	local notice = ns.suffixNotice()
 	if notice or not ctx.suffixRead then

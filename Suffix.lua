@@ -165,8 +165,7 @@ local function stop(s, why)
 	end
 	scan = nil
 	changed()
-	ns.status(string.format("Suffix scan stopped at %d/%d (%s). /pb scan "
-		.. "picks up where it left off.", s.i - 1, #s.ids, why))
+	ns.status(string.format("Suffix scan stopped at %d/%d (%s). /pb scan picks up where it left off.", s.i - 1, #s.ids, why))
 end
 
 -- Runs fn(...) for a timer or event. An error ends the running scan, so it
@@ -214,8 +213,7 @@ local function summary(s)
 	end
 	local failed = s.failed > 0
 		and (", " .. s.failed .. " didn't answer") or ""
-	return string.format("suffix scan done: %d items, %d versions "
-		.. "priced%s.", #s.ids, s.found, failed)
+	return string.format("suffix scan done: %d items, %d versions priced%s.", #s.ids, s.found, failed)
 end
 
 -- With the window open the plan refreshes itself; otherwise say so.
@@ -295,16 +293,14 @@ local function begin(s)
 	if #s.ids == 0 then
 		return complete(s)
 	end
-	ns.status(string.format("scanning %d random-suffix items. Keep "
-		.. "the AH open; /pb stop cancels.", #s.ids))
+	ns.status(string.format("scanning %d random-suffix items. Keep the AH open; /pb stop cancels.", #s.ids))
 	advance(s)
 end
 
 function ns.scan()
 	if scan then
 		local done = math.max(0, scan.i - 1)
-		return ns.status(string.format("already scanning (%d/%d). "
-			.. "/pb stop cancels.", done, #scan.ids))
+		return ns.status(string.format("already scanning (%d/%d). /pb stop cancels.", done, #scan.ids))
 	end
 	if not ns.ahOpen() then
 		return ns.status("open the AH first.")

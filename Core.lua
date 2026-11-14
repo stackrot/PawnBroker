@@ -246,8 +246,7 @@ function ns.missing()
 	end
 	for _, name in ipairs(PAWN_API) do
 		if type(_G[name]) ~= "function" then
-			return "this Pawn has no " .. name .. ", so PawnBroker needs "
-				.. "an update."
+			return "this Pawn has no " .. name .. ", so PawnBroker needs an update."
 		end
 	end
 	local api = type(Auctionator) == "table" and Auctionator.API

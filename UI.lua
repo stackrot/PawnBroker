@@ -27,12 +27,9 @@ local WIDTH = (function()
 end)()
 local HEIGHT = 480
 local ICON = 133784	-- a gold coin, for the portrait
-local BUDGET_HELP = "Budget: blank for the gold you carry, 1g50s, 50s, "
-	.. "or all."
+local BUDGET_HELP = "Budget: blank for the gold you carry, 1g50s, 50s, or all."
 local NEAR_HELP = "Near vendor price: /pb near 10s, or /pb near off."
-local NET_HELP = "Plan by net cost: what each item costs once you sell it "
-	.. "to a vendor. The budget then caps the net total, not what you pay "
-	.. "up front."
+local NET_HELP = "Plan by net cost: what each item costs once you sell it to a vendor. The budget then caps the net total, not what you pay up front."
 
 local f	-- the window
 
@@ -101,8 +98,7 @@ local function rowEnter(row)
 	GameTooltip:SetHyperlink(o.link)
 	GameTooltip:AddLine(" ")
 	if o.vendor > 0 then
-		GameTooltip:AddLine(string.format("Vendors for %s, so it costs %s "
-			.. "once you sell it on.", ns.coins(o.vendor),
+		GameTooltip:AddLine(string.format("Vendors for %s, so it costs %s once you sell it on.", ns.coins(o.vendor),
 			ns.netText(o, ns.coins)), 1, 1, 1, true)
 	end
 	GameTooltip:AddLine("Click to search the AH, shift-click to link.",
@@ -198,8 +194,7 @@ local function render(plan)
 		fill(row(n), ...)
 	end
 	if #plan.chosen == 0 then
-		add(fillTitle, "Nothing in the scan beats your gear within "
-			.. "budget.", GREY)
+		add(fillTitle, "Nothing in the scan beats your gear within budget.", GREY)
 	else
 		add(fillTitle, ns.buyLine(plan, ns.coins), GOLD)
 	end
