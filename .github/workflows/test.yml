@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# The tests only read the checkout.
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
@@ -11,9 +15,12 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: step-security/msvc-dev-cmd@v1
-      - uses: leafo/gh-actions-lua@v13
+      # Actions are pinned to commits so a moved tag can't change what runs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: step-security/msvc-dev-cmd@22c98154b708dbd743e6f27a933cf6ceba3305c4 # v1.13.1
+      - uses: leafo/gh-actions-lua@32909a2dea0a48c433aec79e7fcd31b4cd55800f # v13.1.0
         with:
           luaVersion: "luajit-2.1"
       - run: luajit tests/run.lua
