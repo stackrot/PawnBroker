@@ -165,8 +165,8 @@ local function stop(s, why)
 	end
 	scan = nil
 	changed()
-	ns.status(string.format("%s, scan stopped at %d/%d. /pb scan picks up "
-		.. "where it left off.", why, s.i - 1, #s.ids))
+	ns.status(string.format("Suffix scan stopped at %d/%d (%s). /pb scan "
+		.. "picks up where it left off.", s.i - 1, #s.ids, why))
 end
 
 -- Runs fn(...) for a timer or event. An error ends the running scan, so it
@@ -175,7 +175,7 @@ function guarded(fn, ...)
 	local ok, err = pcall(fn, ...)
 	if not ok then
 		if scan then
-			stop(scan, "Something went wrong")
+			stop(scan, "Lua error")
 		end
 		geterrorhandler()(err)
 	end
@@ -197,7 +197,7 @@ function send(s)
 		return
 	end
 	if not ns.ahOpen() then
-		return stop(s, "The AH closed")
+		return stop(s, "the AH closed")
 	end
 	s.token = nil
 	if not C_AuctionHouse.IsThrottledMessageSystemReady()
@@ -307,7 +307,7 @@ function ns.scan()
 			.. "/pb stop cancels.", done, #scan.ids))
 	end
 	if not ns.ahOpen() then
-		return ns.status("open the auction house first.")
+		return ns.status("open the AH first.")
 	end
 	local missing = ns.missing()
 	if missing then
@@ -344,7 +344,7 @@ function ns.stopScan()
 	if not scan then
 		return ns.status("no scan running.")
 	end
-	stop(scan, "Cancelled")
+	stop(scan, "cancelled")
 end
 
 local function prune()

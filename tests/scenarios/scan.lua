@@ -1,7 +1,7 @@
 -- A full suffix scan through throttling, dropped and partial replies,
 -- then a plan that uses the cached versions.
 pb("scan") run()
-assert(NS.ui.status.text:find("auction house"), NS.ui.status.text)
+assert(NS.ui.status.text:find("Open the AH first"), NS.ui.status.text)
 fire("AUCTION_HOUSE_SHOW") run()
 NS.ui.budget:SetText("") NS.ui.ahead:SetText("")
 pb("scan") run(clock() + 3)

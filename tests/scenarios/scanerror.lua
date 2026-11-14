@@ -10,7 +10,7 @@ fire("AUCTION_HOUSE_SHOW") run()
 pb("scan") run()
 assert(not NS.scanning(), "scan still marked as running")
 assert(#errors > 0 and errors[1]:find("changed API"), "error not reported")
-assert(NS.ui.status.text:find("Something went wrong, scan stopped"),
+assert(NS.ui.status.text:find("scan stopped at %d+/%d+ %(Lua error%)"),
 	NS.ui.status.text)
 -- With the API back, a new scan runs to the end.
 C_AuctionHouse.GetItemSearchResultInfo = info
