@@ -6,6 +6,7 @@
 ## IconTexture: 133784
 ## Category: Auctions
 ## X-License: MIT
+## X-Website: https://github.com/stackrot/PawnBroker
 ## Dependencies: Pawn, Auctionator
 ## SavedVariables: PawnBrokerDB
 
