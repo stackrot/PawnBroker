@@ -2,6 +2,7 @@ package-as: PawnBroker
 
 ignore:
   - tests
+  - docs
   - README.md
 
 manual-changelog:
