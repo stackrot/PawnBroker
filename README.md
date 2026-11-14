@@ -1,31 +1,50 @@
 # PawnBroker
 
-PawnBroker is a World of Warcraft: Forever addon that tells you which gear to buy on the auction house.
-It scores every item in your last Auctionator scan with your Pawn scale, compares each one with what you're wearing, and picks the upgrades that add the most Pawn score for the gold you have.
+Find the gear upgrades worth buying on the auction house, scored by Pawn and priced by Auctionator.
+For World of Warcraft: Forever.
 
 ![The PawnBroker window in game, planning upgrades for a level 25 mage](docs/ingame.png)
+
+- Plans the upgrades that add the most Pawn score for the gold you have, at most one per slot
+- Shows each item's net cost: its AH price minus what a vendor pays for it
+- Lists upgrades that a vendor buys back for nearly what they cost
+- Plans by net cost when you'd rather count what you get back
+- Prices each version of random-suffix items, like "of the Owl", separately
 
 PawnBroker isn't made by or affiliated with the authors of Pawn or Auctionator.
 It needs both and uses their data.
 
-## Requirements
+## Getting started
 
-- WoW: Forever
-- [Pawn](https://www.curseforge.com/wow/addons/pawn), with one scale shown
-- [Auctionator](https://www.curseforge.com/wow/addons/auctionator), with a full scan from the last few days
+You need [Pawn](https://www.curseforge.com/wow/addons/pawn) with one scale shown, and [Auctionator](https://www.curseforge.com/wow/addons/auctionator).
+Install PawnBroker with your addon manager, or unzip a release so the `PawnBroker` folder ends up in `World of Warcraft\_forever_\Interface\AddOns`.
 
-## Installing
+Run a full Auctionator scan at the AH, then type `/pb` anywhere.
+Scan again every few days to keep the prices current.
 
-Install it with your addon manager, or unzip a release so the `PawnBroker` folder ends up in `World of Warcraft\_forever_\Interface\AddOns`.
+## Commands
 
-## Planning
+| Command | What it does |
+|---|---|
+| `/pb` | Plan with the gold you carry |
+| `/pb 1g50s` | Plan with a budget of 1g 50s |
+| `/pb all` | Plan with no budget: the best item for each slot |
+| `/pb +2` | Include items up to 2 levels above you |
+| `/pb net` | Plan by net cost instead of AH price |
+| `/pb near 10s` | Count a net cost of 10s or less as near vendor price (the default is 5s) |
+| `/pb near off` | Hide the near vendor price list |
+| `/pb scan` | Price random-suffix items (needs the AH open) |
+| `/pb stop` | Stop a suffix scan |
 
-Run a full Auctionator scan at the AH every few days, then type `/pb` anywhere.
+Options combine, for example `/pb 1g net +1`.
+
+## The window
+
 The window lists:
 
 - Buy: the upgrades to get, at most one per slot, within your budget
 - Better, but over budget: stronger items you can't afford yet
-- Near vendor price: upgrades that a vendor buys back for nearly what they cost (see below)
+- Near vendor price: upgrades that a vendor buys back for nearly what they cost
 
 Each row shows the item's AH price, its net cost, the Pawn gain over what you're wearing, the level it needs and how many are listed.
 Hover a row for the item's tooltip, click it to search the AH, or shift-click to link it in chat.
@@ -53,22 +72,6 @@ The budget then caps what the plan costs you after selling everything on, so it 
 The plan's title gives both totals, and a note says when the items cost more up front than the gold you carry.
 
 ![A plan made by net cost](docs/net.png)
-
-## Commands
-
-| Command | What it does |
-|---|---|
-| `/pb` | Plan with the gold you carry |
-| `/pb 1g50s` | Plan with a budget of 1g 50s |
-| `/pb all` | Plan with no budget: the best item for each slot |
-| `/pb +2` | Include items up to 2 levels above you |
-| `/pb net` | Plan by net cost instead of AH price |
-| `/pb near 10s` | Count a net cost of 10s or less as near vendor price (the default is 5s) |
-| `/pb near off` | Hide the near vendor price list |
-| `/pb scan` | Price random-suffix items (needs the AH open) |
-| `/pb stop` | Stop a suffix scan |
-
-Options combine, for example `/pb 1g net +1`.
 
 ## Random-suffix items
 
@@ -104,6 +107,13 @@ It sends one AH search at a time and waits for the AH's throttle between them.
 - It doesn't check unique-equipped items or weapon skills, beyond what turns tooltip text red.
 - Prices are only as fresh as your last Auctionator scan.
 
+## Reporting issues
+
+[Open an issue](https://github.com/stackrot/PawnBroker/issues/new?template=bug_report.yml) and the form asks for what's needed.
+That's the versions of PawnBroker, Pawn, Auctionator and the game, and any Lua error.
+Most problems come from a Pawn, Auctionator or game update, so the versions matter.
+Type `/console scriptErrors 1` in game to see errors, or use BugSack to copy them.
+
 ## Development
 
 The tests run the addon against mocked game, Pawn and Auctionator APIs with real scan data.
@@ -114,7 +124,9 @@ luajit tests/run.lua       # all scenarios
 luajit tests/run.lua -v    # with chat output
 ```
 
-Releases are built by the [BigWigs packager](https://github.com/BigWigsMods/packager) from `.pkgmeta`, which leaves the tests, the docs and this README out of the package.
+CI runs them on Ubuntu and Windows for every push.
+Pushing a version tag such as `v0.1.1` runs the tests again, then the [BigWigs packager](https://github.com/BigWigsMods/packager) builds the release from `.pkgmeta` and posts it to GitHub and CurseForge.
+The package leaves out the tests, the docs and this README.
 The mockups and the 400×400 avatar for addon sites come from `docs/mockups/`, and the comment at the top of each file says how to render it.
 
 ## AI use
