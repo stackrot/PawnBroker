@@ -15,6 +15,7 @@ local LEVELS_PAST = 3	-- levels gained before asking for a rescan
 local REMIND_EVERY = 3600	-- seconds between reminders on opening the AH
 local TIMEOUT = 5	-- seconds to wait for a search to answer
 local TRIES = 3	-- searches per item before giving up on it
+local GIVE_UP = 3	-- items in a row without an answer before stopping
 local WAIT_TICKS = 100	-- 0.1 s waits for the throttle or item key
 local MAX_RESULTS = 200	-- listings read per item, cheapest first
 
@@ -132,15 +133,14 @@ local function readVariants(key)
 	return variants
 end
 
-local send, advance, guarded
+local send, advance, guarded, fail
 
 local function retry(s)
 	s.tries = s.tries + 1
 	if s.tries < TRIES then
 		return send(s)
 	end
-	s.failed = s.failed + 1
-	advance(s)
+	fail(s)
 end
 
 -- Waits TIMEOUT for an answer; a newer wait or a reply cancels this one.
@@ -174,6 +174,17 @@ local function stop(s, why)
 	ns.status(string.format("Suffix scan stopped at %d/%d (%s). /pb scan picks up where it left off.", s.i - 1, #s.ids, why))
 end
 
+-- An item that never answered. Several in a row means the AH has stopped
+-- answering at all, so the scan stops rather than wait out every item.
+function fail(s)
+	s.failed = s.failed + 1
+	s.streak = s.streak + 1
+	if s.streak >= GIVE_UP then
+		return stop(s, "the AH stopped answering")
+	end
+	advance(s)
+end
+
 -- Runs fn(...) for a timer or event. An error ends the running scan, so it
 -- can't stay stuck as running, and goes to the error handler (BugSack).
 function guarded(fn, ...)
@@ -189,8 +200,7 @@ end
 local function later(s)
 	s.waits = s.waits + 1
 	if s.waits > WAIT_TICKS then
-		s.failed = s.failed + 1
-		return advance(s)
+		return fail(s)
 	end
 	C_Timer.After(0.1, function() guarded(send, s) end)
 end
@@ -282,6 +292,7 @@ local function save(s)
 	local variants = readVariants(s.key)
 	cache()[s.key.itemID] = { time = time(), variants = variants }
 	s.found = s.found + #variants
+	s.streak = 0
 	if #variants == 0 then
 		s.empty = s.empty + 1
 	end
@@ -345,6 +356,7 @@ function ns.scan()
 	end
 	local s = {
 		ids = {}, i = 0, found = 0, empty = 0, failed = 0, unloaded = 0,
+		streak = 0,
 	}
 	scan = s
 	changed()

@@ -256,6 +256,7 @@ local dropped = {}
 C_AuctionHouse = {
 	MakeItemKey = function(id) return { itemID = id, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0 } end,
 	GetItemKeyInfo = function(key)
+		if KEYS_SILENT then return nil end
 		if keyLoaded[key.itemID] then return { itemName = MOCK[key.itemID].name } end
 		keyLoaded[key.itemID] = true
 	end,
@@ -265,6 +266,7 @@ C_AuctionHouse = {
 		assert(now >= busyUntil, "sent while throttled")
 		STATS.sends = STATS.sends + 1
 		busyUntil = now + 0.3
+		if AH_SILENT then return end
 		local id = key.itemID
 		if id % 11 == 0 and not dropped[id] then dropped[id] = true STATS.dropped = STATS.dropped + 1 return end
 		local all = listings(id)
