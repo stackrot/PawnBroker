@@ -56,8 +56,8 @@ list.
 
 ![Hovering an upgrade in the near vendor price list](docs/near.png)
 
-<sub>This and the next image are mockups drawn from the addon's output on
-its test data, not game screenshots.</sub>
+<sub>This and the next image are mockups made with AI from the addon's
+output on its test data, not game screenshots.</sub>
 
 Tick Net cost, or type `/pb net`, to plan by net cost instead of AH price.
 The budget then caps what the plan costs you after selling everything on,
