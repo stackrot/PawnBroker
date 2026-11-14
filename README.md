@@ -147,6 +147,11 @@ package. The mockups and the 400×400 avatar for addon sites come from
 `docs/mockups/`, and the comment at the top of each file says how to
 render it.
 
+## AI use
+
+Written with AI assistance (Claude), then reviewed and tested by me before
+each release.
+
 ## Licence
 
 MIT
