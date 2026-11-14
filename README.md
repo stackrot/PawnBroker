@@ -91,11 +91,9 @@ tests/run.sh       # all scenarios
 tests/run.sh -v    # with chat output
 ```
 
-`scripts/install.sh` builds the addon with the
-[BigWigs packager](https://github.com/BigWigsMods/packager), the same build
-a CurseForge release gets, and copies it into WoW's AddOns folder. Set
-`WOW_DIR` to the client folder that holds `Interface/AddOns` if yours isn't
-the default Battle.net path under Wine.
+Releases are built by the
+[BigWigs packager](https://github.com/BigWigsMods/packager) from
+`.pkgmeta`, which leaves the tests and this README out of the package.
 
 ## Licence
 
