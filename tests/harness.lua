@@ -152,7 +152,7 @@ C_Item = {
 	GetItemInfo = function(x)
 		local id = idOf(x)
 		local m = MOCK[id]
-		if not m then return nil end
+		if not m then return equippedInfo(id) end
 		local link = type(x) == "string" and x or ("item:" .. id .. "|h[" .. m.name .. "]")
 		-- Vendors pay a quarter of the AH price unless a scenario sets m.sell.
 		return nameOf(link), link, 2, 20, m.lvl, nil, nil, nil, m.loc, nil,
@@ -187,13 +187,24 @@ function PawnGetItemData(link)
 	local m = MOCK[idOf(link)]
 	return m and { stats = statsOf(link) }
 end
-UNREADABLE = {}
+-- UNREADABLE[slot] = n: the item loads after n reads. STATLESS[slot]: it
+-- has loaded but has no stats, so Pawn has nothing for it either.
+UNREADABLE, STATLESS = {}, {}
 function PawnGetItemDataForInventorySlot(slot)
 	local e = EQUIPPED[slot]
 	if not e then return nil, false end
 	local u = UNREADABLE[slot]
-	if u and u > 0 then UNREADABLE[slot] = u - 1 return nil, true end
+	e.loading = u and u > 0
+	if e.loading then UNREADABLE[slot] = u - 1 return nil, true end
+	if STATLESS[slot] then return nil, true end
 	return { stats = e.stats }, true
+end
+function equippedInfo(id)
+	for _, e in pairs(EQUIPPED) do
+		if idOf(e.link) == id and not e.loading then
+			return e.link:match("%[(.-)%]"), e.link, 1
+		end
+	end
 end
 function GetInventoryItemID(_, slot) return EQUIPPED[slot] and idOf(EQUIPPED[slot].link) end
 C_Item_Requests = 0

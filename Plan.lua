@@ -33,13 +33,18 @@ local function score(item, scale)
 	return value or 0
 end
 
--- nil while the slot holds an item Pawn hasn't read yet.
+-- nil while the slot holds an item Pawn hasn't read yet. Pawn also gives
+-- nothing for an item without stats, which once loaded scores 0.
 local function slotScore(slot, scale)
 	local item, had = PawnGetItemDataForInventorySlot(slot, true)
-	if had and not item then
+	if item then
+		return score(item, scale)
+	end
+	local link = had and GetInventoryItemLink("player", slot)
+	if link and not C_Item.GetItemInfo(link) then
 		return nil
 	end
-	return item and score(item, scale) or 0
+	return 0
 end
 
 -- Scores to beat for each slot group, plus the weapon set-up. A slot
