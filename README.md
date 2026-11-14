@@ -65,8 +65,6 @@ They cost next to nothing once you sell them on, which makes them cheap stopgaps
 
 ![Hovering an upgrade in the near vendor price list](docs/near.png)
 
-<sub>This and the next image are mockups made with AI from the addon's output on its test data, not game screenshots.</sub>
-
 Tick the Net cost box, or type `/pb net`, to plan by net cost instead of AH price.
 The budget then caps what the plan costs you after selling everything on, so it can include an item that's over budget at AH price but sells back for most of it.
 The plan's title gives both totals, and a note says when the items cost more up front than the gold you carry.
