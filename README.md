@@ -73,6 +73,22 @@ window asks for a rescan when the cache is over a day old or you've gained
 - The plan is a knapsack: one item per slot at most, the most total Pawn
   gain for the budget.
 
+## Privacy and safety
+
+PawnBroker only reads and plans. It never sends chat or addon messages, so
+nothing leaves your game. It doesn't hook or replace any Blizzard code,
+secure frames or key bindings, and it never buys or posts anything on the
+AH. It writes to two places:
+
+- `PawnBrokerDB`, its saved variables: the window settings, the last plan,
+  each character's last suffix scan, and the suffix price cache, which
+  drops entries after 7 days
+- the Auctionator shopping list named "PawnBroker", which each plan
+  replaces
+
+Scan suffixes only runs when you start it. It sends one AH search at a
+time and waits out the AH's throttle between them.
+
 ## Limits
 
 - One ring, one trinket and one hand-held item per plan. Plan again after
