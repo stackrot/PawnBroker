@@ -4,6 +4,7 @@
 ## Author: stackrot
 ## Version: @project-version@
 ## IconTexture: 133784
+## Category: Auctions
 ## X-License: MIT
 ## Dependencies: Pawn, Auctionator
 ## SavedVariables: PawnBrokerDB
