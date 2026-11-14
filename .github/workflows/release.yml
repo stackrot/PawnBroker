@@ -1,0 +1,37 @@
+name: release
+
+# A version tag (v0.1.0) builds the addon with the BigWigs packager and
+# posts it to GitHub Releases, plus CurseForge and Wago when their tokens
+# are set as secrets. A site whose token is missing is skipped.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write  # the GitHub release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # Actions are pinned to commits so a moved tag can't change what runs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0  # the packager reads tags and history
+          persist-credentials: false
+      - uses: leafo/gh-actions-lua@32909a2dea0a48c433aec79e7fcd31b4cd55800f # v13.1.0
+        with:
+          luaVersion: "luajit-2.1"
+      # Never release a build that fails its tests.
+      - name: Tests
+        run: |
+          lua tests/run.lua | tee test.log
+          grep -q '^ok ' test.log
+      - uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2.7.0
+        with:
+          pandoc: false  # only needed for WoWInterface
