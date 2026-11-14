@@ -7,8 +7,8 @@ picks the upgrades that add the most Pawn score for the gold you have.
 
 ![The PawnBroker window in game, planning upgrades for a level 25 mage](docs/ingame.png)
 
-PawnBroker is a separate addon, not made by or affiliated with the
-authors of Pawn or Auctionator. It needs both and builds on their data.
+PawnBroker isn't made by or affiliated with the authors of Pawn or
+Auctionator. It needs both and uses their data.
 
 ## Requirements
 
@@ -39,27 +39,27 @@ chat. Each plan also fills the Auctionator shopping list "PawnBroker" with
 the items to buy.
 
 The budget is the gold you carry unless you type one in, such as `1g50s`,
-or `all` for no limit. Levels above adds items you can't wear yet, so you
-can plan a few levels ahead.
+or `all` for no limit. The Levels above box adds items you can't wear
+yet, so you can plan a few levels ahead.
 
 ## Net cost and near vendor price
 
 An item's net cost is its AH price minus what a vendor pays for it. That's
-what it costs you if you sell it once you outgrow it, and the Net column
-shows it for every row.
+what it costs you if you sell it once you outgrow it. The Net column shows
+it for every row, and hovering a row shows the vendor price.
 
 Upgrades with a net cost of 5s or less get their own list, Near vendor
 price. They cost next to nothing once you sell them on, which makes them
-cheap stopgaps. Their net cost shows in green, and hovering one shows the
-vendor price. `/pb near 10s` changes the limit and `/pb near off` hides the
-list.
+cheap stopgaps, and their net cost shows in green. `/pb near 10s` changes
+the limit and `/pb near off` hides the list.
 
 ![Hovering an upgrade in the near vendor price list](docs/near.png)
 
 <sub>This and the next image are mockups made with AI from the addon's
 output on its test data, not game screenshots.</sub>
 
-Tick Net cost, or type `/pb net`, to plan by net cost instead of AH price.
+Tick the Net cost box, or type `/pb net`, to plan by net cost instead of
+AH price.
 The budget then caps what the plan costs you after selling everything on,
 so it can include an item that's over budget at AH price but sells back
 for most of it. The plan's title gives both totals, and a note says when
@@ -99,8 +99,8 @@ PawnBroker only considers items your class can wear, at or below your
 level (or as many levels above it as you asked for), whose tooltips have
 no red text such as a profession requirement. It compares rings and
 trinkets with the weaker of the two you wear, and a two-hander with your
-main hand and off hand together. Off hands are skipped while you wear a
-two-hander, and gains under 0.5% are ignored, as Pawn does.
+main hand and off hand together. It skips off hands while you wear a
+two-hander and ignores gains under 0.5%, as Pawn does.
 
 From what's left it picks at most one item per slot, with the most total
 Pawn gain that fits the budget.
