@@ -297,10 +297,11 @@ function ns.scan()
 	if not ns.ahOpen() then
 		return ns.status("open the auction house first.")
 	end
-	local adb = ns.auctionator()
-	if not (adb and PawnCommon and PawnGetItemData) then
-		return ns.status("needs Pawn and Auctionator loaded.")
+	local missing = ns.missing()
+	if missing then
+		return ns.status(missing)
 	end
+	local adb = ns.auctionator()
 	local scale = ns.pickScale()
 	if not scale then
 		return ns.status("no Pawn scale is visible. Show one in /pawn.")

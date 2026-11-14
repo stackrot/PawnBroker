@@ -446,10 +446,11 @@ end
 
 -- Builds the run's context, or returns nil and the reason it can't start.
 local function prepare(opts)
-	local db = ns.auctionator()
-	if not (PawnCommon and PawnGetItemData and db) then
-		return nil, "needs Pawn and Auctionator loaded."
+	local missing = ns.missing()
+	if missing then
+		return nil, missing
 	end
+	local db = ns.auctionator()
 	local scale, visible = ns.pickScale()
 	if not scale then
 		return nil, "no Pawn scale is visible. Show one in /pawn."

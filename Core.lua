@@ -225,7 +225,42 @@ end
 
 -- Auctionator's price table for this realm, or nil before it loads.
 function ns.auctionator()
-	return Auctionator and Auctionator.Database and Auctionator.Database.db
+	local db = Auctionator and Auctionator.Database
+		and Auctionator.Database.db
+	return type(db) == "table" and db or nil
+end
+
+local PAWN_API = { "PawnGetItemData", "PawnGetSingleValueFromItem",
+	"PawnGetItemDataForInventorySlot", "PawnIsArmorBestTypeForPlayer",
+	"PawnIsScaleVisible" }
+local AUCTIONATOR_API = { "GetAuctionPriceByItemID", "GetAuctionAgeByItemID",
+	"CreateShoppingList" }
+
+-- Why planning can't run with the Pawn and Auctionator that are loaded, or
+-- nil when everything it calls is there. A later version that renames
+-- something then gets a message instead of a Lua error.
+function ns.missing()
+	if type(PawnCommon) ~= "table" or type(PawnCommon.Scales) ~= "table"
+			or type(PawnIgnoreStatValue) ~= "number" then
+		return "needs Pawn loaded."
+	end
+	for _, name in ipairs(PAWN_API) do
+		if type(_G[name]) ~= "function" then
+			return "this Pawn has no " .. name .. ", so PawnBroker needs "
+				.. "an update."
+		end
+	end
+	local api = type(Auctionator) == "table" and Auctionator.API
+		and Auctionator.API.v1
+	if type(api) ~= "table" or not ns.auctionator() then
+		return "needs Auctionator loaded."
+	end
+	for _, name in ipairs(AUCTIONATOR_API) do
+		if type(api[name]) ~= "function" then
+			return "this Auctionator has no API.v1." .. name
+				.. ", so PawnBroker needs an update."
+		end
+	end
 end
 
 local function red(color)
