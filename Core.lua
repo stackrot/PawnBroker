@@ -6,6 +6,7 @@ local _, ns = ...
 ns.ADDON = "PawnBroker"
 ns.SCAN_BELOW = 10	-- suffix scan covers items this far below your level
 ns.SCAN_AHEAD = 5	-- and this far above it
+ns.NEAR = 500	-- default net cost (copper) that counts as near vendor price
 
 local PREFIX = "|cff33ff99PawnBroker|r: "
 local STALL = 3	-- seconds with no item data arriving before giving up

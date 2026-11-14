@@ -29,6 +29,7 @@ local HEIGHT = 480
 local ICON = 133784	-- a gold coin, for the portrait
 local BUDGET_HELP = "Budget: blank for the gold you carry, 1g50s, 50s, "
 	.. "or all."
+local NEAR_HELP = "Near vendor price: /pb near 10s, or /pb near off."
 
 local f	-- the window
 
@@ -164,7 +165,10 @@ local function fillTitle(r, label, color)
 	r:EnableMouse(false)
 end
 
-local function fillOption(r, o)
+local GREEN, WHITE = { 0.25, 1, 0.25 }, { 1, 1, 1 }
+
+-- Net cost turns green at or under the near-vendor limit.
+local function fillOption(r, o, nearLimit)
 	r.option = o
 	r.title:SetText("")
 	r.icon:SetTexture(select(5, C_Item.GetItemInfoInstant(o.link)))
@@ -174,6 +178,8 @@ local function fillOption(r, o)
 	r.cells.item:SetText(o.link)
 	r.cells.price:SetText(ns.coins(o.price))
 	r.cells.net:SetText(ns.netText(o, ns.coins))
+	local near = nearLimit and o.net <= nearLimit
+	r.cells.net:SetTextColor(unpack(near and GREEN or WHITE))
 	r.cells.gain:SetText(string.format("+%.1f (%s)", o.gain, pct))
 	r.cells.req:SetText(o.level)
 	r.cells.listed:SetText(o.listed or "")
@@ -196,13 +202,20 @@ local function render(plan)
 			#plan.chosen, ns.coins(plan.total), plan.gain), GOLD)
 	end
 	for _, o in ipairs(plan.chosen) do
-		add(fillOption, o)
+		add(fillOption, o, plan.nearLimit)
 	end
 	if #plan.over > 0 then
 		add(fillTitle, "Better, but over budget", GREY)
 	end
 	for _, o in ipairs(plan.over) do
-		add(fillOption, o)
+		add(fillOption, o, plan.nearLimit)
+	end
+	if #plan.near > 0 then
+		add(fillTitle, string.format("Near vendor price (net %s or less)",
+			ns.coins(plan.nearLimit)), GREEN)
+	end
+	for _, o in ipairs(plan.near) do
+		add(fillOption, o, plan.nearLimit)
 	end
 	for i = n + 1, #f.rows do
 		f.rows[i]:Hide()
@@ -342,21 +355,52 @@ function methods:Plan(note)
 	end
 	local ui = settings()
 	ui.budget, ui.ahead = budget, ahead > 0 and tostring(ahead) or ""
+	-- false turns the near-vendor list off; unset means the default.
+	if ui.near ~= false then
+		opts.near = ui.near or ns.NEAR
+	end
 	self.note = note
 	self:Show()
 	ns.plan(opts)
 end
 
+-- "near 10s" or "near off" from a /pb line: copper, false for off, or
+-- nil when the word after "near" isn't either.
+local function nearLimit(word)
+	word = (word or ""):lower()
+	if word == "off" then
+		return false
+	end
+	if word:find("^[%dgsc]+$") and word:find("%d[gsc]") then
+		return ns.copper(word)
+	end
+end
+
 -- Fills the controls from a /pb command line, then plans.
 function methods:PlanFrom(msg)
 	local budget, ahead = {}, ""
+	local words = {}
 	for word in msg:gmatch("%S+") do
+		words[#words + 1] = word
+	end
+	local i = 1
+	while i <= #words do
+		local word = words[i]
 		local n = word:match("^%+(%d+)$")
 		if n then
 			ahead = n
+		elseif word:lower() == "near" then
+			local limit = nearLimit(words[i + 1])
+			if limit == nil then
+				self:Show()
+				return self:SetStatus(NEAR_HELP)
+			end
+			settings().near = limit
+			i = i + 1
 		else
 			budget[#budget + 1] = word
 		end
+		i = i + 1
 	end
 	self.budget:SetText(table.concat(budget, " "))
 	self.ahead:SetText(ahead)

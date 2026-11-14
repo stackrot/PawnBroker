@@ -10,6 +10,7 @@ local _, ns = ...
 local BUCKETS = 1000	-- budget resolution of the knapsack
 local GEAR_TRIES = 20	-- half-second waits for Pawn to read your gear
 local OVER_BUDGET = 5	-- out-of-budget items worth mentioning
+local NEAR_MAX = 8	-- near-vendor alternatives worth mentioning
 
 local SLOTS = {
 	Head = { 1 }, Neck = { 2 }, Shoulder = { 3 }, Chest = { 5 },
@@ -247,6 +248,35 @@ local function overBudget(groups, chosen)
 	return over
 end
 
+-- Upgrades within the budget that cost at most ctx.near once sold to a
+-- vendor: the best one per slot group, unless the plan already buys it.
+local function nearVendor(ctx, chosen)
+	if not ctx.near then
+		return {}
+	end
+	local picked, near = {}, {}
+	for _, o in ipairs(chosen) do
+		picked[o.group] = o
+	end
+	for group, options in pairs(ctx.groups) do
+		local best
+		for _, o in ipairs(options) do
+			if o.net <= ctx.near and (not ctx.budget or o.price <= ctx.budget)
+					and (not best or o.gain > best.gain) then
+				best = o
+			end
+		end
+		if best and best ~= picked[group] then
+			near[#near + 1] = best
+		end
+	end
+	table.sort(near, function(a, b) return a.gain > b.gain end)
+	for i = #near, NEAR_MAX + 1, -1 do
+		near[i] = nil
+	end
+	return near
+end
+
 -- "+454%" against what the slot holds, or "empty slot".
 function ns.percent(o)
 	if o.beat <= 0 then
@@ -347,6 +377,13 @@ local function plainLines(r)
 	for _, o in ipairs(r.over) do
 		out[#out + 1] = "  " .. describe(o)
 	end
+	if #r.near > 0 then
+		out[#out + 1] = string.format("Near vendor price (net %s or less):",
+			ns.money(r.nearLimit))
+	end
+	for _, o in ipairs(r.near) do
+		out[#out + 1] = "  " .. describe(o)
+	end
 	for _, note in ipairs(r.notes) do
 		out[#out + 1] = note
 	end
@@ -355,6 +392,7 @@ end
 
 local function report(ctx, chosen, over)
 	local r = { header = header(ctx), chosen = chosen, over = over,
+		near = nearVendor(ctx, chosen), nearLimit = ctx.near,
 		notes = {}, total = 0, gain = 0 }
 	for _, o in ipairs(chosen) do
 		r.total, r.gain = r.total + o.price, r.gain + o.gain
@@ -405,6 +443,7 @@ local function prepare(opts)
 		db = db, scale = scale, visible = visible,
 		ids = ids, age = age, level = level,
 		maxLevel = level + opts.ahead, budget = opts.budget,
+		near = opts.near,
 		groups = {}, skipped = {}, unscanned = 0,
 	}
 end
@@ -460,7 +499,7 @@ local function run(opts)
 end
 
 -- "1g50s" as copper.
-local function coins(word)
+function ns.copper(word)
 	local g = tonumber(word:match("(%d+)g")) or 0
 	local s = tonumber(word:match("(%d+)s")) or 0
 	local c = tonumber(word:match("(%d+)c")) or 0
@@ -478,7 +517,7 @@ function ns.parse(msg)
 		elseif word == "all" then
 			opts.budget = nil
 		elseif word:find("^[%dgsc]+$") and word:find("%d[gsc]") then
-			opts.budget = coins(word)
+			opts.budget = ns.copper(word)
 		else
 			return nil
 		end
