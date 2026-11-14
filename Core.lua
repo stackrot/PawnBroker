@@ -276,12 +276,17 @@ function ns.verdict(link, quality)
 end
 
 -- Listings on the newest day of Auctionator's history for the item.
+-- This reads Auctionator's own tables, not its API, so it checks every type
+-- and gives nil if a later Auctionator stores them differently.
 function ns.listed(db, id)
 	local entry = db[tostring(id)]
+	if type(entry) ~= "table" or type(entry.a) ~= "table" then
+		return nil
+	end
 	local newest, count = -1, nil
-	for day, n in pairs(entry and entry.a or {}) do
+	for day, n in pairs(entry.a) do
 		day = tonumber(day)
-		if day and day > newest then
+		if day and day > newest and type(n) == "number" then
 			newest, count = day, n
 		end
 	end
@@ -290,15 +295,21 @@ end
 
 -- Days since Auctionator's last full scan by its own record, or nil. A
 -- search by hand also dates the items it finds, so the newest day in the
--- price data can hold only a handful of items.
+-- price data can hold only a handful of items. Like ns.listed this reads
+-- Auctionator's own tables, so it checks their types.
 local function fullScanAge()
 	local state = Auctionator.SavedState
 	local zero = Auctionator.Constants and Auctionator.Constants.SCAN_DAY_0
-	if not (state and zero) then
+	if type(state) ~= "table" or type(zero) ~= "number" then
 		return nil
 	end
-	local last = math.max(state.TimeOfLastReplicateScan or 0,
-		state.TimeOfLastBrowseScan or 0, state.TimeOfLastGetAllScan or 0)
+	local last = 0
+	for _, key in ipairs({ "TimeOfLastReplicateScan",
+			"TimeOfLastBrowseScan", "TimeOfLastGetAllScan" }) do
+		if type(state[key]) == "number" then
+			last = math.max(last, state[key])
+		end
+	end
 	if last < zero then
 		return nil
 	end
