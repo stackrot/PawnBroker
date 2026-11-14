@@ -72,11 +72,15 @@ function ns.ahOpen()
 	return ahOpen or (AuctionHouseFrame and AuctionHouseFrame:IsShown())
 end
 
--- A random-suffix item in scan range that isn't freshly cached.
+-- A random-suffix item in scan range that isn't freshly cached, or nil
+-- while the client has no data for the item, so it can't tell yet.
 local function wanted(id, level, now)
 	local _, link, quality, _, minLevel = C_Item.GetItemInfo(id)
+	if not link then
+		return nil
+	end
 	minLevel = minLevel or 0
-	if not link or minLevel > level + ns.SCAN_AHEAD
+	if minLevel > level + ns.SCAN_AHEAD
 			or minLevel < level - ns.SCAN_BELOW then
 		return false
 	end
@@ -89,7 +93,7 @@ local function wanted(id, level, now)
 		return false
 	end
 	local item = PawnGetItemData(link)
-	return item and PawnIsArmorBestTypeForPlayer(item)
+	return item ~= nil and PawnIsArmorBestTypeForPlayer(item)
 end
 
 -- Cheapest listing of each version, by the name the suffix gives it.
@@ -207,22 +211,41 @@ function send(s)
 	await(s)
 end
 
+-- Items whose data the client never loaded couldn't be checked at all.
+-- After an Auctionator full scan that can last until you log out.
+local function unloadedNote(s)
+	if s.unloaded == 0 then
+		return ""
+	end
+	local items = s.unloaded == 1 and "1 item"
+		or (s.unloaded .. " items")
+	return string.format(" %s didn't load and couldn't be checked. Type /pb scan again, or log out and back in if it keeps happening.", items)
+end
+
 local function summary(s)
+	if #s.ids == 0 and s.unloaded > 0 then
+		return "nothing scanned." .. unloadedNote(s)
+	end
 	if #s.ids == 0 then
 		return "random-suffix prices for your level are up to date."
 	end
 	local failed = s.failed > 0
 		and (", " .. s.failed .. " didn't answer") or ""
-	return string.format("suffix scan done: %d items, %d versions priced%s.", #s.ids, s.found, failed)
+	return string.format("suffix scan done: %d items, %d versions priced%s.", #s.ids, s.found, failed) .. unloadedNote(s)
 end
 
 -- With the window open the plan refreshes itself; otherwise say so.
+-- A scan that couldn't check every item isn't recorded, so the window
+-- keeps asking for one.
 local function complete(s)
 	scan = nil
-	scans()[ns.character()] = {
-		time = time(), level = UnitLevel("player"), items = #s.ids,
-		versions = s.found, empty = s.empty, failed = s.failed,
-	}
+	if s.unloaded == 0 then
+		scans()[ns.character()] = {
+			time = time(), level = UnitLevel("player"),
+			items = #s.ids, versions = s.found, empty = s.empty,
+			failed = s.failed,
+		}
+	end
 	changed()
 	if ns.ui and ns.ui:IsShown() then
 		return ns.ui:Plan(summary(s))
@@ -318,12 +341,17 @@ function ns.scan()
 	if not age then
 		return ns.status("no AH data. Run a full Auctionator scan.")
 	end
-	local s = { ids = {}, i = 0, found = 0, empty = 0, failed = 0 }
+	local s = {
+		ids = {}, i = 0, found = 0, empty = 0, failed = 0, unloaded = 0,
+	}
 	scan = s
 	changed()
 	local level, now = UnitLevel("player"), time()
 	local function pick(id)
-		if wanted(id, level, now) then
+		local want = wanted(id, level, now)
+		if want == nil then
+			s.unloaded = s.unloaded + 1
+		elseif want then
 			s.ids[#s.ids + 1] = id
 		end
 	end

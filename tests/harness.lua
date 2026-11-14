@@ -151,6 +151,7 @@ C_Item = {
 	end,
 	GetItemInfo = function(x)
 		local id = idOf(x)
+		if UNLOADED[id] then return nil end
 		local m = MOCK[id]
 		if not m then return equippedInfo(id) end
 		local link = type(x) == "string" and x or ("item:" .. id .. "|h[" .. m.name .. "]")
@@ -165,9 +166,14 @@ C_Item = {
 		end
 		return out
 	end,
-	IsItemDataCachedByID = function() return true end,
+	IsItemDataCachedByID = function(id) return not UNLOADED[id] end,
 	RequestLoadItemDataByID = function() C_Item_Requests = C_Item_Requests + 1 end,
 }
+-- UNLOADED[id]: the client never gets the item's data.
+UNLOADED = {}
+Item = { CreateFromItemID = function(_, id)
+	return { ContinueOnItemLoad = function() end }
+end }
 C_TooltipInfo = { GetHyperlink = function(link)
 	local m = MOCK[idOf(link)]
 	local lines = { { leftText = nameOf(link) } }
