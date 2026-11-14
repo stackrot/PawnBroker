@@ -1,6 +1,10 @@
 ## Interface: 16001
 ## Title: PawnBroker
 ## Notes: Plans the best gear to buy from your Auctionator scan, scored by Pawn. /pb
+## Author: stackrot
+## Version: @project-version@
+## IconTexture: 133784
+## X-License: MIT
 ## Dependencies: Pawn, Auctionator
 ## SavedVariables: PawnBrokerDB
 
