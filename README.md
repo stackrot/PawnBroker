@@ -1,77 +1,107 @@
 # PawnBroker
 
-PawnBroker works out which gear to buy from the auction house. It scores
-everything in your last Auctionator scan with your Pawn scale, compares it
-with what you're wearing, and picks the set of upgrades that adds the most
-Pawn score within your budget.
+PawnBroker is a World of Warcraft: Forever addon that tells you which gear
+to buy on the auction house. It scores every item in your last Auctionator
+scan with your Pawn scale, compares each one with what you're wearing, and
+picks the upgrades that add the most Pawn score for the gold you have.
 
-Built for WoW: Forever.
+![The PawnBroker window planning upgrades for a level 18 mage](docs/plan.png)
+
+<sub>The screenshots are mockups drawn from the addon's output on its test
+data. In game the window uses Blizzard's frame art and real item
+icons.</sub>
 
 ## Requirements
 
-- [Pawn](https://www.curseforge.com/wow/addons/pawn), with one scale visible
+- WoW: Forever
+- [Pawn](https://www.curseforge.com/wow/addons/pawn), with one scale shown
 - [Auctionator](https://www.curseforge.com/wow/addons/auctionator), with a
   full scan from the last few days
 
-## Using it
+## Installing
 
-Type `/pb` to open the window and plan. The plan lists:
+Install it with your addon manager, or unzip a release so the `PawnBroker`
+folder ends up in `World of Warcraft\_forever_\Interface\AddOns`.
 
-- Buy: the upgrades to get, at most one per slot, that fit the budget
+## Planning
+
+Run a full Auctionator scan at the AH every few days, then type `/pb`
+anywhere. The window lists:
+
+- Buy: the upgrades to get, at most one per slot, within your budget
 - Better, but over budget: stronger items you can't afford yet
-- Near vendor price: upgrades that a vendor buys back for nearly what
-  they cost, so they're close to free once you outgrow them
+- Near vendor price: upgrades that a vendor buys back for nearly what they
+  cost (see below)
 
-Each row shows the AH price, the net cost (the price minus what a vendor
-pays for it), the Pawn gain over what you wear now, the required level and
-how many are listed. Hover a row for the item tooltip, click it to search
-the AH, or shift-click to link it in chat. The plan also replaces the
-Auctionator shopping list "PawnBroker".
+Each row shows the item's AH price, its net cost, the Pawn gain over what
+you're wearing, the level it needs and how many are listed. Hover a row for
+the item's tooltip, click it to search the AH, or shift-click to link it in
+chat. Each plan also fills the Auctionator shopping list "PawnBroker" with
+the items to buy.
+
+The budget is the gold you carry unless you type one in, such as `1g50s`,
+or `all` for no limit. Levels above adds items you can't wear yet, so you
+can plan a few levels ahead.
+
+## Net cost and near vendor price
+
+An item's net cost is its AH price minus what a vendor pays for it. That's
+what it costs you if you sell it once you outgrow it, and the Net column
+shows it for every row.
+
+Upgrades with a net cost of 5s or less get their own list, Near vendor
+price. They cost next to nothing once you sell them on, which makes them
+cheap stopgaps. Their net cost shows in green, and hovering one shows the
+vendor price. `/pb near 10s` changes the limit and `/pb near off` hides the
+list.
+
+![Hovering an upgrade in the near vendor price list](docs/near.png)
+
+Tick Net cost, or type `/pb net`, to plan by net cost instead of AH price.
+The budget then caps what the plan costs you after selling everything on,
+so it can include an item that's over budget at AH price but sells back
+for most of it. The plan's title gives both totals, and a note says when
+the items cost more up front than the gold you carry.
+
+![A plan made by net cost](docs/net.png)
+
+## Commands
 
 | Command | What it does |
 |---|---|
 | `/pb` | Plan with the gold you carry |
 | `/pb 1g50s` | Plan with a budget of 1g 50s |
-| `/pb all` | No budget: the best item for each slot |
+| `/pb all` | Plan with no budget: the best item for each slot |
 | `/pb +2` | Include items up to 2 levels above you |
 | `/pb net` | Plan by net cost instead of AH price |
-| `/pb near 10s` | Count anything with a net cost of 10s or less as near vendor price (default 5s) |
+| `/pb near 10s` | Count a net cost of 10s or less as near vendor price (the default is 5s) |
 | `/pb near off` | Hide the near vendor price list |
 | `/pb scan` | Price random-suffix items (needs the AH open) |
 | `/pb stop` | Stop a suffix scan |
 
-Options combine, for example `/pb 1g net +1`. The window has the same
-controls: a budget box, a levels-above box, a Net cost box, Plan, and Scan
-suffixes.
+Options combine, for example `/pb 1g net +1`.
 
-### Net cost
-
-With Net cost ticked, the budget caps the net total rather than what you
-pay up front. That lets a plan include an item that's over budget at AH
-price but sells back for most of it. The plan shows both totals and warns
-when the up-front cost is more than the gold you carry.
-
-### Random-suffix items
+## Random-suffix items
 
 Auctionator keeps one price per item, the cheapest version, so it can't
 tell "Willow Vest of the Owl" from "Willow Vest of the Monkey". With the
-AH open, Scan suffixes runs one search per random-suffix item from 10
-levels below you to 5 above and caches the cheapest listing of each
-version for that realm. The plan then prices each version on its own. The
-window asks for a rescan when the cache is over a day old or you've gained
-3 levels since.
+AH open, Scan suffixes looks up every random-suffix item from 10 levels
+below you to 5 above and saves the cheapest listing of each version for
+your realm. Plans then price each version separately. The window asks for
+a new scan when the last one is over a day old or you've gained 3 levels
+since.
 
 ## How it plans
 
-- Only items your class can wear, at or below your level (or the levels
-  above you asked for), with no red text in the tooltip, such as a
-  profession requirement.
-- Rings and trinkets are compared with the weaker of your two.
-- A two-hander is compared with your main hand and off hand together, and
-  off hands are skipped while you wear a two-hander.
-- Gains under 0.5% are ignored, as Pawn does.
-- The plan is a knapsack: one item per slot at most, the most total Pawn
-  gain for the budget.
+PawnBroker only considers items your class can wear, at or below your
+level (or as many levels above it as you asked for), whose tooltips have
+no red text such as a profession requirement. It compares rings and
+trinkets with the weaker of the two you wear, and a two-hander with your
+main hand and off hand together. Off hands are skipped while you wear a
+two-hander, and gains under 0.5% are ignored, as Pawn does.
+
+From what's left it picks at most one item per slot, with the most total
+Pawn gain that fits the budget.
 
 ## Privacy and safety
 
@@ -87,14 +117,14 @@ AH. It writes to two places:
   replaces
 
 Scan suffixes only runs when you start it. It sends one AH search at a
-time and waits out the AH's throttle between them.
+time and waits for the AH's throttle between them.
 
 ## Limits
 
-- One ring, one trinket and one hand-held item per plan. Plan again after
-  equipping to fill the second slot.
-- Unique-equipped items and weapon skills aren't checked beyond what turns
-  tooltip text red.
+- A plan buys at most one ring, one trinket and one hand-held item. Plan
+  again after equipping to fill the second ring or trinket slot.
+- It doesn't check unique-equipped items or weapon skills, beyond what
+  turns tooltip text red.
 - Prices are only as fresh as your last Auctionator scan.
 
 ## Development
@@ -110,7 +140,9 @@ luajit tests/run.lua -v    # with chat output
 
 Releases are built by the
 [BigWigs packager](https://github.com/BigWigsMods/packager) from
-`.pkgmeta`, which leaves the tests and this README out of the package.
+`.pkgmeta`, which leaves the tests, the docs and this README out of the
+package. The screenshots come from `docs/mockups/window.html`, and the
+comment at its top says how to render them.
 
 ## Licence
 
