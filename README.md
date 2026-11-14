@@ -84,11 +84,12 @@ window asks for a rescan when the cache is over a day old or you've gained
 ## Development
 
 The tests run the addon against mocked game, Pawn and Auctionator APIs with
-real scan data. They need LuaJIT:
+real scan data. They need [LuaJIT](https://luajit.org) and run the same on
+Windows, macOS and Linux:
 
 ```
-tests/run.sh       # all scenarios
-tests/run.sh -v    # with chat output
+luajit tests/run.lua       # all scenarios
+luajit tests/run.lua -v    # with chat output
 ```
 
 Releases are built by the
