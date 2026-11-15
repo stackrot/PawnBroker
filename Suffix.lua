@@ -18,6 +18,8 @@ local TRIES = 3	-- searches per item before giving up on it
 local GIVE_UP = 4	-- searches in a row without an answer before stopping
 local KEY_WAIT = 3	-- seconds to wait for an item's AH data
 local READY_WAIT = 10	-- seconds to wait for the AH to take a search
+local FALLBACK = 0.2	-- seconds between checks when an AH event is late
+local PREFETCH = 5	-- items ahead whose AH data is asked for early
 local MAX_RESULTS = 200	-- listings read per item, cheapest first
 
 local SORTS = { {
@@ -205,8 +207,9 @@ function guarded(fn, ...)
 	end
 end
 
--- Checks again shortly, up to limit seconds into the wait.
-local function later(s, limit)
+-- Waits for the item key or the throttle. Their events send at once; a
+-- timer checks again in case one never comes, up to limit seconds in.
+local function later(s, what, limit)
 	s.waitStart = s.waitStart or GetTime()
 	if GetTime() - s.waitStart > limit then
 		s.waitStart = nil
@@ -215,7 +218,14 @@ local function later(s, limit)
 		end
 		return
 	end
-	C_Timer.After(0.1, function() guarded(send, s) end)
+	s.waiting = what
+	local token = {}
+	s.waitToken = token
+	C_Timer.After(FALLBACK, function()
+		if scan == s and s.waitToken == token then
+			guarded(send, s)
+		end
+	end)
 end
 
 -- The AH ignores searches for item keys the client hasn't cached, and
@@ -227,12 +237,12 @@ function send(s)
 	if not ns.ahOpen() then
 		return stop(s, "the AH closed")
 	end
-	s.token = nil
+	s.token, s.waiting, s.waitToken = nil, nil, nil
 	if not C_AuctionHouse.GetItemKeyInfo(s.key) then
-		return later(s, KEY_WAIT)
+		return later(s, "key", KEY_WAIT)
 	end
 	if not C_AuctionHouse.IsThrottledMessageSystemReady() then
-		return later(s, READY_WAIT)
+		return later(s, "ready", READY_WAIT)
 	end
 	s.waitStart = nil
 	C_AuctionHouse.SendSellSearchQuery(s.key, SORTS, true)
@@ -303,6 +313,11 @@ function advance(s)
 	progress(s)
 	s.key = C_AuctionHouse.MakeItemKey(s.ids[s.i])
 	s.tries, s.waitStart = 0, nil
+	-- Asking for an item key starts loading it, so the next few are
+	-- ready by their turn.
+	for i = s.i + 1, math.min(s.i + PREFETCH, #s.ids) do
+		C_AuctionHouse.GetItemKeyInfo(C_AuctionHouse.MakeItemKey(s.ids[i]))
+	end
 	send(s)
 end
 
@@ -338,6 +353,27 @@ local function onResults(itemKey)
 	end
 	C_AuctionHouse.RequestMoreItemSearchResults(s.key)
 	await(s)
+end
+
+local function onReady()
+	if scan and scan.waiting == "ready" then
+		send(scan)
+	end
+end
+
+local function onKey(itemID)
+	local s = scan
+	if s and s.waiting == "key" and s.key.itemID == itemID then
+		send(s)
+	end
+end
+
+-- The AH dropped a message, maybe this scan's search, so it's sent again
+-- now rather than after the timeout. That doesn't count as a try.
+local function onDropped()
+	if scan and scan.token then
+		send(scan)
+	end
 end
 
 local function begin(s)
@@ -425,10 +461,20 @@ local function remind()
 	end
 end
 
+local SCAN_EVENTS = {
+	ITEM_SEARCH_RESULTS_UPDATED = onResults,
+	ITEM_SEARCH_RESULTS_ADDED = onResults,
+	AUCTION_HOUSE_THROTTLED_SYSTEM_READY = onReady,
+	ITEM_KEY_ITEM_INFO_RECEIVED = onKey,
+	AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED = onDropped,
+}
+
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "PLAYER_LOGIN", "AUCTION_HOUSE_SHOW",
-		"AUCTION_HOUSE_CLOSED", "ITEM_SEARCH_RESULTS_UPDATED",
-		"ITEM_SEARCH_RESULTS_ADDED" }) do
+		"AUCTION_HOUSE_CLOSED" }) do
+	pcall(frame.RegisterEvent, frame, event)
+end
+for event in pairs(SCAN_EVENTS) do
 	pcall(frame.RegisterEvent, frame, event)
 end
 frame:SetScript("OnEvent", function(_, event, ...)
@@ -442,7 +488,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
 	elseif event == "AUCTION_HOUSE_CLOSED" then
 		ahOpen = false
 		changed()
-	else
-		guarded(onResults, ...)
+	elseif SCAN_EVENTS[event] then
+		guarded(SCAN_EVENTS[event], ...)
 	end
 end)

@@ -255,12 +255,24 @@ local function listings(id)
 	return out
 end
 local dropped = {}
+-- Like the client, the AH announces a loaded item key, a free throttle and
+-- a dropped message with events, unless NO_AH_EVENTS.
+local function announce(delay, e, ...)
+	if NO_AH_EVENTS then return end
+	local args = { ... }
+	C_Timer.After(delay, function() fire(e, unpack(args)) end)
+end
 C_AuctionHouse = {
 	MakeItemKey = function(id) return { itemID = id, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0 } end,
+	-- An item key loads 0.15 s after it's first asked for.
 	GetItemKeyInfo = function(key)
 		if KEYS_SILENT then return nil end
-		if keyLoaded[key.itemID] then return { itemName = MOCK[key.itemID].name } end
-		keyLoaded[key.itemID] = true
+		local id = key.itemID
+		if not keyLoaded[id] then
+			keyLoaded[id] = now + 0.15
+			announce(0.15, "ITEM_KEY_ITEM_INFO_RECEIVED", id)
+		end
+		if now >= keyLoaded[id] then return { itemName = MOCK[id].name } end
 	end,
 	IsThrottledMessageSystemReady = function() return now >= busyUntil end,
 	SendSellSearchQuery = function(key, sorts, sep)
@@ -268,12 +280,18 @@ C_AuctionHouse = {
 		assert(now >= busyUntil, "sent while throttled")
 		STATS.sends = STATS.sends + 1
 		busyUntil = now + 0.3
+		announce(0.3, "AUCTION_HOUSE_THROTTLED_SYSTEM_READY")
 		if AH_SILENT then return end
 		local id = key.itemID
 		-- SILENT_ONE: the first item searched for never answers.
 		if SILENT_ONE and not SILENT_ID then SILENT_ID = id end
 		if SILENT_ONE and SILENT_ID == id then return end
-		if id % 11 == 0 and not dropped[id] then dropped[id] = true STATS.dropped = STATS.dropped + 1 return end
+		if id % 11 == 0 and not dropped[id] then
+			dropped[id] = true
+			STATS.dropped = STATS.dropped + 1
+			announce(0.05, "AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED")
+			return
+		end
 		local all = listings(id)
 		local first = (id % 3 == 0) and math.ceil(#all / 2) or #all
 		results[id] = { all = all, shown = first }
@@ -290,6 +308,10 @@ C_AuctionHouse = {
 	end,
 	GetItemSearchResultInfo = function(key, i) return results[key.itemID].all[i] end,
 }
+-- Forgets loaded item keys, drops and results, as after a relog.
+function resetAH()
+	keyLoaded, dropped, results = {}, {}, {}
+end
 
 SlashCmdList = {}
 local ns = {}
