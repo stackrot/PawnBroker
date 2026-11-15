@@ -11,6 +11,7 @@ local BUCKETS = 1000	-- budget resolution of the knapsack
 local GEAR_TRIES = 100	-- 0.1 s waits for Pawn to read your gear
 local OVER_BUDGET = 5	-- out-of-budget items worth mentioning
 local NEAR_MAX = 8	-- near-vendor alternatives worth mentioning
+local REUSE = 120	-- seconds a run's scored items serve a quick re-plan
 
 local SLOTS = {
 	Head = { 1 }, Neck = { 2 }, Shoulder = { 3 }, Chest = { 5 },
@@ -22,6 +23,7 @@ local SLOTS = {
 local NOTHING = "Nothing in the scan beats your gear within budget."
 
 local busy = false
+local last	-- the last full run's context, inputs and time
 
 -- Pawn's unenchanted score, the figure its own upgrade arrows compare.
 local function score(item, scale)
@@ -498,14 +500,43 @@ local function loading(loaded, total)
 	ns.status(string.format("loading item data %d/%d...", loaded, total))
 end
 
-local function run(opts)
+-- What scoring depends on apart from prices. A change here means
+-- scoring again rather than re-planning from the last run.
+local function inputs(opts)
+	local parts = { UnitLevel("player"), opts.ahead, ns.pickScale() or "",
+		ns.suffixStamp(), ns.lastFullScan() }
+	for slot = 1, 18 do
+		parts[#parts + 1] = GetInventoryItemLink("player", slot) or ""
+	end
+	return table.concat(parts, "|")
+end
+
+-- A new budget, net cost or near-vendor limit only changes the final
+-- pick, so a recent run's scored items do. Prices from AH searches made
+-- since then show at the next full plan.
+local function replan(opts)
+	if not last or GetTime() - last.at > REUSE
+			or inputs(opts) ~= last.inputs then
+		return false
+	end
+	local ctx = last.ctx
+	ctx.budget, ctx.net, ctx.near = opts.budget, opts.net, opts.near
+	finish(ctx)
+	return true
+end
+
+local function run(opts, quick)
 	if busy then
 		return ns.status("still working on the last plan.")
+	end
+	if quick and replan(opts) then
+		return
 	end
 	local ctx, err = prepare(opts)
 	if not ctx then
 		return ns.status(err)
 	end
+	local key = inputs(opts)
 	busy = true
 	ns.status(string.format("checking %d items...", #ctx.ids))
 	loadGear()
@@ -517,7 +548,10 @@ local function run(opts)
 			return
 		end
 		ns.each(ctx.ids, function(id) consider(ctx, id) end,
-			function() finish(ctx) end,
+			function()
+				last = { ctx = ctx, inputs = key, at = GetTime() }
+				finish(ctx)
+			end,
 			function() busy = false end)
 	end
 	-- An error here would otherwise leave busy set until a /reload.
@@ -559,6 +593,8 @@ function ns.parse(msg)
 	return opts
 end
 
-function ns.plan(opts)
-	run(opts)
+-- quick: re-plan from the last run's scored items when nothing they
+-- depend on has changed.
+function ns.plan(opts, quick)
+	run(opts, quick)
 end

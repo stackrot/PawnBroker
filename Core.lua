@@ -339,15 +339,11 @@ function ns.listed(db, id)
 	return count
 end
 
--- Days since Auctionator's last full scan by its own record, or nil. A
--- search by hand also dates the items it finds, so the newest day in the
--- price data can hold only a handful of items. Like ns.listed this reads
--- Auctionator's own tables, so it checks their types.
-local function fullScanAge()
-	local state = Auctionator.SavedState
-	local zero = Auctionator.Constants and Auctionator.Constants.SCAN_DAY_0
-	if type(state) ~= "table" or type(zero) ~= "number" then
-		return nil
+-- When Auctionator last started a full scan by its own record, or 0.
+function ns.lastFullScan()
+	local state = Auctionator and Auctionator.SavedState
+	if type(state) ~= "table" then
+		return 0
 	end
 	local last = 0
 	for _, key in ipairs({ "TimeOfLastReplicateScan",
@@ -356,6 +352,19 @@ local function fullScanAge()
 			last = math.max(last, state[key])
 		end
 	end
+	return last
+end
+
+-- Days since Auctionator's last full scan by its own record, or nil. A
+-- search by hand also dates the items it finds, so the newest day in the
+-- price data can hold only a handful of items. Like ns.listed this reads
+-- Auctionator's own tables, so it checks their types.
+local function fullScanAge()
+	local zero = Auctionator.Constants and Auctionator.Constants.SCAN_DAY_0
+	if type(zero) ~= "number" then
+		return nil
+	end
+	local last = ns.lastFullScan()
 	if last < zero then
 		return nil
 	end

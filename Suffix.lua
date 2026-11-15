@@ -29,6 +29,7 @@ local SORTS = { {
 } }
 
 local scan	-- the running scan, if any
+local stamp = 0	-- changes whenever the cache does
 local ahOpen = false
 local remindedAt = 0
 
@@ -44,6 +45,10 @@ local function scans()
 	local db = ns.db()
 	db.scans = db.scans or {}
 	return db.scans
+end
+
+function ns.suffixStamp()
+	return stamp
 end
 
 -- Cached versions of an item, cheapest first, and when they were read.
@@ -324,6 +329,7 @@ end
 local function save(s)
 	local variants = readVariants(s.key)
 	cache()[s.key.itemID] = { time = time(), variants = variants }
+	stamp = stamp + 1
 	s.found = s.found + #variants
 	if #variants == 0 then
 		s.empty = s.empty + 1
@@ -481,6 +487,7 @@ local function prune()
 		for id, entry in pairs(items) do
 			if entry.time < cutoff then
 				items[id] = nil
+				stamp = stamp + 1
 			end
 		end
 	end

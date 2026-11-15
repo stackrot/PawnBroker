@@ -225,7 +225,7 @@ local function controls()
 	local label = text(f, "GameFontNormalSmall")
 	label:SetPoint("TOPLEFT", PAD + 4, -62)
 	label:SetText("Budget")
-	f.budget = input(f, 80, function() f:Plan() end)
+	f.budget = input(f, 80, function() f:Plan(nil, true) end)
 	f.budget:SetPoint("LEFT", label, "RIGHT", 10, 0)
 	f.budget:SetText(ui.budget or "")
 	f.budget:SetScript("OnEnter", function(self)
@@ -246,7 +246,7 @@ local function controls()
 	f.net:SetSize(24, 24)
 	f.net:SetPoint("LEFT", f.ahead, "RIGHT", 10, 0)
 	f.net:SetChecked(ui.net == true)
-	f.net:SetScript("OnClick", function() f:Plan() end)
+	f.net:SetScript("OnClick", function() f:Plan(nil, true) end)
 	f.net:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_TOP")
 		GameTooltip:SetText(NET_HELP, 1, 1, 1, 1, true)
@@ -355,8 +355,9 @@ function methods:Refresh()
 end
 
 -- Plans from the controls; note, if given, replaces the status line
--- once the plan is shown.
-function methods:Plan(note)
+-- once the plan is shown. quick re-plans from the last run's scores
+-- when it can.
+function methods:Plan(note, quick)
 	local budget = strtrim(self.budget:GetText())
 	local ahead = tonumber(self.ahead:GetText()) or 0
 	local net = self.net:GetChecked() and true or false
@@ -375,7 +376,7 @@ function methods:Plan(note)
 	end
 	self.note = note
 	self:Show()
-	ns.plan(opts)
+	ns.plan(opts, quick)
 end
 
 -- "near 10s" or "near off" from a /pb line: copper, false for off, or

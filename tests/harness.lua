@@ -186,7 +186,9 @@ Item = { CreateFromItemID = function(_, id)
 		end
 	end }
 end }
+TOOLTIPS = 0	-- tooltips read, one per item scored
 C_TooltipInfo = { GetHyperlink = function(link)
+	TOOLTIPS = TOOLTIPS + 1
 	local m = MOCK[idOf(link)]
 	local lines = { { leftText = nameOf(link) } }
 	if m.name:find("Goggles") then
