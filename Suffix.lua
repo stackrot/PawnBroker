@@ -89,14 +89,10 @@ local function wanted(id, level, now)
 	if entry and now - entry.time < REUSE then
 		return false
 	end
+	-- The armour type was already checked when the items were picked
+	-- (ns.wearable), so the verdict is all that's left.
 	local verdict = ns.verdict(link, quality)
-	if not verdict.random or verdict.unusable then
-		return false
-	end
-	-- Pawn has nothing for a base item without stats, such as a ring
-	-- whose stats all come from its suffix, and those have no armour type.
-	local item = PawnGetItemData(link)
-	return item == nil or PawnIsArmorBestTypeForPlayer(item)
+	return verdict.random == true and not verdict.unusable
 end
 
 -- Cheapest listing of each version, by the name the suffix gives it.

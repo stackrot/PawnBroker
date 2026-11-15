@@ -18,8 +18,12 @@ text = NS.ui.status.text
 assert(text:find("^Suffix scan done") and text:find("didn't load"), text)
 assert(not PawnBrokerDB.scans["Tester-Test Realm"])
 
--- Once everything loads the scan finishes and is recorded.
+-- Once everything loads the scan finishes and is recorded. Blue items
+-- aren't random-suffix, but they did load.
 UNLOADED = {}
+for id in pairs(MOCK) do
+	if id % 4 == 0 then QUALITY[id] = 3 end
+end
 pb("scan") run()
 text = NS.ui.status.text
 assert(text:find("^Suffix scan done") and not text:find("didn't load"), text)

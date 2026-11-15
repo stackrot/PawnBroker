@@ -156,7 +156,7 @@ C_Item = {
 		if not m then return equippedInfo(id) end
 		local link = type(x) == "string" and x or ("item:" .. id .. "|h[" .. m.name .. "]")
 		-- Vendors pay a quarter of the AH price unless a scenario sets m.sell.
-		return nameOf(link), link, 2, 20, m.lvl, nil, nil, nil, m.loc, nil,
+		return nameOf(link), link, QUALITY[id] or 2, 20, m.lvl, nil, nil, nil, m.loc, nil,
 			m.sell or math.floor(m.m / 4)
 	end,
 	GetItemStats = function(x)
@@ -169,8 +169,9 @@ C_Item = {
 	IsItemDataCachedByID = function(id) return not UNLOADED[id] end,
 	RequestLoadItemDataByID = function() C_Item_Requests = C_Item_Requests + 1 end,
 }
--- UNLOADED[id]: the client never gets the item's data.
-UNLOADED = {}
+-- UNLOADED[id]: the client never gets the item's data. QUALITY[id]
+-- overrides the default green.
+UNLOADED, QUALITY = {}, {}
 Item = { CreateFromItemID = function(_, id)
 	return { ContinueOnItemLoad = function() end }
 end }
