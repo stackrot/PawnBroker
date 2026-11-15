@@ -7,7 +7,7 @@ local start = clock()
 pb("scan") run()
 local text = NS.ui.status.text
 assert(text:find("stopped answering"), text)
-assert(clock() - start < 60, "took " .. (clock() - start) .. "s")
+assert(clock() - start < 25, "took " .. (clock() - start) .. "s")
 assert(not (PawnBrokerDB.scans and PawnBrokerDB.scans["Tester-Test Realm"]))
 
 -- Item keys that never load count the same way.
@@ -16,7 +16,7 @@ start = clock()
 pb("scan") run()
 text = NS.ui.status.text
 assert(text:find("stopped answering"), text)
-assert(clock() - start < 60, "took " .. (clock() - start) .. "s")
+assert(clock() - start < 25, "took " .. (clock() - start) .. "s")
 
 -- One item that never answers is skipped, and the scan isn't recorded
 -- as done, so the window keeps asking for another.

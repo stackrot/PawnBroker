@@ -29,6 +29,7 @@ function run(limit)
 end
 function advanceClock(sec) now = now + sec end
 function clock() return now end
+function GetTime() return now end
 function time() return EPOCH + math.floor(now) end
 function date() return "now" end
 
