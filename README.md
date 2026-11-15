@@ -17,7 +17,7 @@ It needs both and uses their data.
 ## Getting started
 
 You need [Pawn](https://www.curseforge.com/wow/addons/pawn) with one scale shown, and [Auctionator](https://www.curseforge.com/wow/addons/auctionator).
-Install PawnBroker with your addon manager, or unzip a release so the `PawnBroker` folder ends up in `World of Warcraft\_forever_\Interface\AddOns`.
+Install [PawnBroker from CurseForge](https://www.curseforge.com/wow/addons/pawnbroker) with your addon manager, or unzip a release so the `PawnBroker` folder ends up in `World of Warcraft\_forever_\Interface\AddOns`.
 
 Run a full Auctionator scan at the AH, then type `/pb` anywhere.
 Scan again every few days to keep the prices current.
