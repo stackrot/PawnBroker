@@ -30,6 +30,9 @@ end
 function advanceClock(sec) now = now + sec end
 function clock() return now end
 function GetTime() return now end
+-- Each call costs a millisecond, so a frame's batch is a fixed size.
+local profiled = 0
+function debugprofilestop() profiled = profiled + 1 return profiled end
 function time() return EPOCH + math.floor(now) end
 function date() return "now" end
 
@@ -152,7 +155,7 @@ C_Item = {
 	end,
 	GetItemInfo = function(x)
 		local id = idOf(x)
-		if UNLOADED[id] then return nil end
+		if not itemLoaded(id) then return nil end
 		local m = MOCK[id]
 		if not m then return equippedInfo(id) end
 		local link = type(x) == "string" and x or ("item:" .. id .. "|h[" .. m.name .. "]")
@@ -167,14 +170,21 @@ C_Item = {
 		end
 		return out
 	end,
-	IsItemDataCachedByID = function(id) return not UNLOADED[id] end,
+	IsItemDataCachedByID = function(id) return itemLoaded(id) end,
 	RequestLoadItemDataByID = function() C_Item_Requests = C_Item_Requests + 1 end,
 }
--- UNLOADED[id]: the client never gets the item's data. QUALITY[id]
--- overrides the default green.
-UNLOADED, QUALITY = {}, {}
+-- UNLOADED[id]: the client never gets the item's data. LOADING[id]: it
+-- arrives at that clock time. QUALITY[id] overrides the default green.
+UNLOADED, LOADING, QUALITY = {}, {}, {}
+function itemLoaded(id)
+	return not UNLOADED[id] and not (LOADING[id] and now < LOADING[id])
+end
 Item = { CreateFromItemID = function(_, id)
-	return { ContinueOnItemLoad = function() end }
+	return { ContinueOnItemLoad = function(_, f)
+		if not UNLOADED[id] and LOADING[id] then
+			C_Timer.After(math.max(0, LOADING[id] - now), f)
+		end
+	end }
 end }
 C_TooltipInfo = { GetHyperlink = function(link)
 	local m = MOCK[idOf(link)]

@@ -437,15 +437,21 @@ function ns.loadItems(ids, done, progress)
 	C_Timer.After(1, check)
 end
 
--- Runs work(item) for each item, BATCH per frame so nothing hitches, then
--- done(). An error goes to the error handler (BugSack) and to failed().
-local BATCH = 40
+-- Runs work(item) for each item, FRAME_MS of it per frame so nothing
+-- hitches, then done(). An error goes to the error handler (BugSack) and
+-- to failed().
+local FRAME_MS = 8
 function ns.each(items, work, done, failed)
 	local function from(first)
-		local last = math.min(first + BATCH - 1, #items)
+		local last = first - 1
 		local ok, err = pcall(function()
-			for i = first, last do
-				work(items[i])
+			local start = debugprofilestop()
+			while last < #items do
+				last = last + 1
+				work(items[last])
+				if debugprofilestop() - start >= FRAME_MS then
+					break
+				end
 			end
 			if last == #items then
 				done()

@@ -8,7 +8,7 @@
 local _, ns = ...
 
 local BUCKETS = 1000	-- budget resolution of the knapsack
-local GEAR_TRIES = 20	-- half-second waits for Pawn to read your gear
+local GEAR_TRIES = 100	-- 0.1 s waits for Pawn to read your gear
 local OVER_BUDGET = 5	-- out-of-budget items worth mentioning
 local NEAR_MAX = 8	-- near-vendor alternatives worth mentioning
 
@@ -469,8 +469,8 @@ local function prepare(opts)
 end
 
 -- Pawn reads an item only once the client has cached it, which can lag
--- a login or a gear change, so this waits up to GEAR_TRIES half-seconds
--- before treating any slot it still can't read as empty.
+-- a login or a gear change, so this waits up to GEAR_TRIES tenths of a
+-- second before treating any slot it still can't read as empty.
 local function readGear(ctx, tries, done)
 	local ok, err = pcall(function()
 		ctx.base = baselines(ctx.scale)
@@ -482,7 +482,7 @@ local function readGear(ctx, tries, done)
 	if #ctx.base.unread == 0 or tries >= GEAR_TRIES then
 		return done()
 	end
-	C_Timer.After(0.5, function() readGear(ctx, tries + 1, done) end)
+	C_Timer.After(0.1, function() readGear(ctx, tries + 1, done) end)
 end
 
 local function loadGear()
@@ -509,18 +509,24 @@ local function run(opts)
 	busy = true
 	ns.status(string.format("checking %d items...", #ctx.ids))
 	loadGear()
-	readGear(ctx, 0, function()
-		-- An error here would otherwise leave busy set until a /reload.
-		local ok, e = pcall(ns.loadItems, ctx.ids, function()
-			ns.each(ctx.ids, function(id) consider(ctx, id) end,
-				function() finish(ctx) end,
-				function() busy = false end)
-		end, loading)
-		if not ok then
-			busy = false
-			geterrorhandler()(e)
+	-- Gear and item data load side by side; scoring starts once both are.
+	local waiting = 2
+	local function ready()
+		waiting = waiting - 1
+		if waiting > 0 then
+			return
 		end
-	end)
+		ns.each(ctx.ids, function(id) consider(ctx, id) end,
+			function() finish(ctx) end,
+			function() busy = false end)
+	end
+	-- An error here would otherwise leave busy set until a /reload.
+	local ok, e = pcall(ns.loadItems, ctx.ids, ready, loading)
+	if not ok then
+		busy = false
+		return geterrorhandler()(e)
+	end
+	readGear(ctx, 0, ready)
 end
 
 -- "1g50s" as copper.
