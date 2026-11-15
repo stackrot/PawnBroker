@@ -298,9 +298,24 @@ local function complete(s)
 	ns.say(summary(s) .. " Type /pb to plan.")
 end
 
+-- About how long the rest takes at the pace so far, once a few items
+-- give a fair average, or "".
+local function left(s, done)
+	if done < 3 then
+		return ""
+	end
+	local secs = (GetTime() - s.startedAt) / done * (#s.ids - done)
+	if secs >= 90 then
+		return string.format(", about %d minutes left", math.ceil(secs / 60))
+	end
+	return string.format(", about %d seconds left",
+		math.max(5, math.ceil(secs / 5) * 5))
+end
+
 -- Every item in the window, every quarter in chat.
 local function progress(s)
-	local text = string.format("scanned %d/%d", s.i - 1, #s.ids)
+	local done = s.i - 1
+	local text = string.format("scanned %d/%d", done, #s.ids) .. left(s, done)
 	if ns.ui and ns.ui:IsShown() then
 		return ns.ui:SetStatus("Suffix scan: " .. text)
 	end
@@ -425,6 +440,7 @@ local function begin(s)
 		return complete(s)
 	end
 	order(s.ids)
+	s.startedAt = GetTime()
 	ns.status(string.format("scanning %d random-suffix items. Keep the AH open; /pb stop cancels.", #s.ids))
 	advance(s)
 end
