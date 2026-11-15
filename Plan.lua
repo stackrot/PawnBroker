@@ -18,10 +18,6 @@ local SLOTS = {
 	Hands = { 10 }, Finger = { 11, 12 }, Trinket = { 13, 14 },
 	Back = { 15 }, Ranged = { 18 },
 }
-local OFF_HAND = {
-	INVTYPE_WEAPONOFFHAND = true, INVTYPE_SHIELD = true,
-	INVTYPE_HOLDABLE = true,
-}
 
 local NOTHING = "Nothing in the scan beats your gear within budget."
 
@@ -66,9 +62,7 @@ local function baselines(scale)
 		end
 	end
 	base.main, base.off = read(16), read(17)
-	local link = GetInventoryItemLink("player", 16)
-	local loc = link and select(4, C_Item.GetItemInfoInstant(link))
-	base.twoHanded = loc == "INVTYPE_2HWEAPON"
+	base.twoHanded = ns.twoHanded()
 	return base
 end
 
@@ -82,7 +76,7 @@ local function baseline(base, loc)
 	if loc == "INVTYPE_2HWEAPON" then
 		return base.main + base.off
 	end
-	if not OFF_HAND[loc] then
+	if not ns.OFF_HAND[loc] then
 		return base.main
 	end
 	if not base.twoHanded then

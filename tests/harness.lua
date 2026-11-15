@@ -241,6 +241,7 @@ Auctionator = { Database = { db = DB }, API = { v1 = {
 -- auction house
 local busyUntil, keyLoaded, results, sends = -1, {}, {}, 0
 STATS = { sends = 0, more = 0, dropped = 0 }
+SENT = {}	-- item IDs searched for, in order
 local function listings(id)
 	local m = MOCK[id]
 	if id % 7 == 0 then return {} end
@@ -279,6 +280,7 @@ C_AuctionHouse = {
 		assert(sorts[1].sortOrder == 4 and sep == true)
 		assert(now >= busyUntil, "sent while throttled")
 		STATS.sends = STATS.sends + 1
+		SENT[#SENT + 1] = key.itemID
 		busyUntil = now + 0.3
 		announce(0.3, "AUCTION_HOUSE_THROTTLED_SYSTEM_READY")
 		if AH_SILENT then return end

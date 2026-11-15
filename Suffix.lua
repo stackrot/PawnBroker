@@ -355,6 +355,41 @@ local function onResults(itemKey)
 	await(s)
 end
 
+-- 1 for items a plan can use now, 2 for off hands a two-hander rules
+-- out, 3 for items above your level plus Levels above.
+local function rank(id, maxLevel, twoHanded)
+	local level = select(5, C_Item.GetItemInfo(id)) or 0
+	if level > maxLevel then
+		return 3, level
+	end
+	local loc = select(4, C_Item.GetItemInfoInstant(id))
+	if twoHanded and ns.OFF_HAND[loc] then
+		return 2, level
+	end
+	return 1, level
+end
+
+-- Best rank first, then closest to your level, so a scan stopped early
+-- has already priced the items that matter most.
+local function order(ids)
+	local ahead = tonumber((ns.db().ui or {}).ahead) or 0
+	local maxLevel = UnitLevel("player") + ahead
+	local twoHanded = ns.twoHanded()
+	local ranks, levels = {}, {}
+	for _, id in ipairs(ids) do
+		ranks[id], levels[id] = rank(id, maxLevel, twoHanded)
+	end
+	table.sort(ids, function(a, b)
+		if ranks[a] ~= ranks[b] then
+			return ranks[a] < ranks[b]
+		end
+		if levels[a] ~= levels[b] then
+			return levels[a] > levels[b]
+		end
+		return a < b
+	end)
+end
+
 local function onReady()
 	if scan and scan.waiting == "ready" then
 		send(scan)
@@ -383,6 +418,7 @@ local function begin(s)
 	if #s.ids == 0 then
 		return complete(s)
 	end
+	order(s.ids)
 	ns.status(string.format("scanning %d random-suffix items. Keep the AH open; /pb stop cancels.", #s.ids))
 	advance(s)
 end

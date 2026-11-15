@@ -28,6 +28,18 @@ ns.GROUPS = {
 	INVTYPE_THROWN = "Ranged",
 }
 
+-- Hand-held items that go beside a one-hander, never a two-hander.
+ns.OFF_HAND = {
+	INVTYPE_WEAPONOFFHAND = true, INVTYPE_SHIELD = true,
+	INVTYPE_HOLDABLE = true,
+}
+
+function ns.twoHanded()
+	local link = GetInventoryItemLink("player", 16)
+	local loc = link and select(4, C_Item.GetItemInfoInstant(link))
+	return loc == "INVTYPE_2HWEAPON"
+end
+
 -- Red tooltip text that doesn't mean "can't use".
 local HARMLESS_RED = {}
 for _, key in ipairs({ "ITEM_SCRAPABLE_NOT", "CANNOT_UNEQUIP_COMBAT",
