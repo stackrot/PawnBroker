@@ -269,6 +269,9 @@ C_AuctionHouse = {
 		busyUntil = now + 0.3
 		if AH_SILENT then return end
 		local id = key.itemID
+		-- SILENT_ONE: the first item searched for never answers.
+		if SILENT_ONE and not SILENT_ID then SILENT_ID = id end
+		if SILENT_ONE and SILENT_ID == id then return end
 		if id % 11 == 0 and not dropped[id] then dropped[id] = true STATS.dropped = STATS.dropped + 1 return end
 		local all = listings(id)
 		local first = (id % 3 == 0) and math.ceil(#all / 2) or #all

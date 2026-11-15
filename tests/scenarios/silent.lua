@@ -18,7 +18,17 @@ text = NS.ui.status.text
 assert(text:find("stopped answering"), text)
 assert(clock() - start < 60, "took " .. (clock() - start) .. "s")
 
--- Once it answers again the scan finishes.
-KEYS_SILENT = nil
+-- One item that never answers is skipped, and the scan isn't recorded
+-- as done, so the window keeps asking for another.
+KEYS_SILENT, SILENT_ONE = nil, true
 pb("scan") run()
-assert(NS.ui.status.text:find("^Suffix scan done"), NS.ui.status.text)
+text = NS.ui.status.text
+assert(text:find("^Suffix scan done.*1 didn't answer"), text)
+assert(not (PawnBrokerDB.scans and PawnBrokerDB.scans["Tester-Test Realm"]))
+
+-- Once it answers the rescan picks up just that item and is recorded.
+SILENT_ONE = nil
+pb("scan") run()
+text = NS.ui.status.text
+assert(text:find("^Suffix scan done: 1 items"), text)
+assert(PawnBrokerDB.scans["Tester-Test Realm"])

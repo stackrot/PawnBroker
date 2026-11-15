@@ -239,15 +239,17 @@ local function summary(s)
 	end
 	local failed = s.failed > 0
 		and (", " .. s.failed .. " didn't answer") or ""
-	return string.format("suffix scan done: %d items, %d versions priced%s.", #s.ids, s.found, failed) .. unloadedNote(s)
+	local again = (s.failed > 0 and s.unloaded == 0)
+		and " Type /pb scan to try again." or ""
+	return string.format("suffix scan done: %d items, %d versions priced%s.", #s.ids, s.found, failed) .. again .. unloadedNote(s)
 end
 
 -- With the window open the plan refreshes itself; otherwise say so.
--- A scan that couldn't check every item isn't recorded, so the window
+-- A scan that couldn't price every item isn't recorded, so the window
 -- keeps asking for one.
 local function complete(s)
 	scan = nil
-	if s.unloaded == 0 then
+	if s.unloaded == 0 and s.failed == 0 then
 		scans()[ns.character()] = {
 			time = time(), level = UnitLevel("player"),
 			items = #s.ids, versions = s.found, empty = s.empty,
