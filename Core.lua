@@ -261,6 +261,11 @@ function ns.missing()
 			return "this Pawn has no " .. name .. ", so PawnBroker needs an update."
 		end
 	end
+	-- From Pawn 2.14.5, Pawn stops scoring when another addon breaks how it
+	-- reads tooltips, and its own window names the addon.
+	if type(PawnIsIncompatible) == "function" and PawnIsIncompatible() then
+		return "Pawn can't score items with one of your other addons loaded. Type /pawn to see which."
+	end
 	local api = type(Auctionator) == "table" and Auctionator.API
 		and Auctionator.API.v1
 	if type(api) ~= "table" or not ns.auctionator() then

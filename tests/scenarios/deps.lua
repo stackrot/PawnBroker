@@ -26,3 +26,10 @@ PawnCommon = nil
 assert(status(""):find("[Nn]eeds Pawn"), NS.ui.status.text)
 PawnCommon = common
 assert(status("") == "Plan ready.", NS.ui.status.text)
+-- Pawn 2.14.5 and later report an addon that breaks their tooltip reading.
+PawnIsIncompatible = function() return true end
+assert(status(""):find("Pawn can't score items"), NS.ui.status.text)
+fire("AUCTION_HOUSE_SHOW")
+assert(status("scan"):find("Pawn can't score items"), NS.ui.status.text)
+PawnIsIncompatible = function() return nil end
+assert(status("") == "Plan ready.", NS.ui.status.text)
