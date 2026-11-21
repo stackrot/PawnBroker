@@ -74,7 +74,7 @@ The plan's title gives both totals, and a note says when the items cost more up 
 ## Random-suffix items
 
 Auctionator keeps one price per item, the cheapest version, so it can't tell "Willow Vest of the Owl" from "Willow Vest of the Monkey".
-With the AH open, Scan suffixes looks up every random-suffix item from 10 levels below you to 5 above and saves the cheapest listing of each version for your realm.
+With the AH open, Scan suffixes looks up every random-suffix item from 10 levels below you to 5 above and saves the cheapest listing of each version for your realm and faction.
 Plans then price each version separately.
 The window asks for a new scan when the last one is over a day old or you've gained 3 levels since.
 

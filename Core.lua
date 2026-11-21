@@ -177,8 +177,10 @@ function ns.db()
 	return PawnBrokerDB
 end
 
-function ns.realm()
-	return GetRealmName()
+-- The AH this character sees, which on Forever is one per realm and
+-- faction, as "Realm Alliance".
+function ns.market()
+	return GetRealmName() .. " " .. (UnitFactionGroup("player") or "")
 end
 
 function ns.character()

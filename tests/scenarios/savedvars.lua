@@ -9,7 +9,7 @@ PawnBrokerDB = {
 	ui = { budget = 5, ahead = {}, net = "yes", near = -1 },
 	scans = { ["Tester-Test Realm"] = { time = "soon" }, other = 7 },
 	suffix = {
-		["Test Realm"] = {
+		["Test Realm Alliance"] = {
 			[6541] = good,
 			[1] = { time = 1 },
 			[2] = { time = time(), variants = { { link = 4, price = 1 } } },
@@ -26,7 +26,7 @@ local db = PawnBrokerDB
 assert(db.ui.budget == "" and db.ui.ahead == "", "ui reset")
 assert(db.ui.net == false and db.ui.near == nil, "net and near reset")
 assert(db.scans["Tester-Test Realm"] == nil and db.scans.other == nil)
-local realm = db.suffix["Test Realm"]
+local realm = db.suffix["Test Realm Alliance"]
 assert(realm[6541] == good, "good entry dropped")
 assert(realm[1] == nil and realm[2] == nil and realm[3] == nil)
 assert(db.suffix["Bad Realm"] == nil)

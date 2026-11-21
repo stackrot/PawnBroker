@@ -17,4 +17,4 @@ assert(NS.suffixNotice():find("3 levels past"))
 LEVEL = nil
 advanceClock(8 * 86400)
 fire("PLAYER_LOGIN")
-assert(next(PawnBrokerDB.suffix["Test Realm"]) == nil)
+assert(PawnBrokerDB.suffix["Test Realm Alliance"] == nil, "pruned market kept")

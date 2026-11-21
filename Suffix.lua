@@ -2,9 +2,9 @@
 -- Vest" at 5s may be the Monkey version while the Owl one costs 40s. With
 -- the AH open, /pb scan runs one sell search per random-suffix item in
 -- your level range (a sell search returns every suffix with full links)
--- and caches the cheapest listing of each version, per realm. /pb plans
--- from that cache, and both /pb and opening the AH ask for a rescan when
--- it gets old.
+-- and caches the cheapest listing of each version, per realm and faction.
+-- /pb plans from that cache, and both /pb and opening the AH ask for a
+-- rescan when it gets old.
 
 local _, ns = ...
 
@@ -36,9 +36,9 @@ local remindedAt = 0
 local function cache()
 	local db = ns.db()
 	db.suffix = db.suffix or {}
-	local realm = ns.realm()
-	db.suffix[realm] = db.suffix[realm] or {}
-	return db.suffix[realm]
+	local market = ns.market()
+	db.suffix[market] = db.suffix[market] or {}
+	return db.suffix[market]
 end
 
 local function scans()
@@ -497,14 +497,20 @@ function ns.stopScan()
 	stop(scan, "cancelled")
 end
 
+-- Old entries go, and so does a market with none left, such as the
+-- realm-only ones from before prices were kept per faction.
 local function prune()
 	local cutoff = time() - KEEP_DAYS * 86400
-	for _, items in pairs(ns.db().suffix or {}) do
+	local suffix = ns.db().suffix or {}
+	for market, items in pairs(suffix) do
 		for id, entry in pairs(items) do
 			if entry.time < cutoff then
 				items[id] = nil
 				stamp = stamp + 1
 			end
+		end
+		if next(items) == nil then
+			suffix[market] = nil
 		end
 	end
 end

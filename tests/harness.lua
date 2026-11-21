@@ -145,6 +145,7 @@ function GetMoney() return gear[3] end
 function UnitLevel() return LEVEL or gear[1] end
 function UnitName() return "Tester" end
 function GetRealmName() return "Test Realm" end
+function UnitFactionGroup() return FACTION or "Alliance", FACTION or "Alliance" end
 C_CurrencyInfo = { GetCoinTextureString = function(c) return "<" .. c .. "c>" end }
 function geterrorhandler() return function(e) error("addon error: " .. tostring(e), 0) end end
 function GetInventoryItemLink(_, slot) return EQUIPPED[slot] and EQUIPPED[slot].link end
