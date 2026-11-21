@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- If Pawn reports an addon it can't work with, `/pb` tells you to check `/pawn` instead of planning with wrong scores. Pawn added this check in 2.14.5.
+- Suffix prices are now saved per realm and faction, because each faction has its own AH. Run Scan suffixes again on each character. Prices saved by 0.1.0 aren't used any more and are cleared after 7 days.
+
 ## 0.1.0
 
 First public version.
