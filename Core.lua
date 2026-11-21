@@ -90,12 +90,9 @@ function ns.netText(o, money)
 	return money(o.net)
 end
 
--- Coin icons for chat. The global GetCoinTextureString is gone on this
--- client; C_CurrencyInfo has it.
-local coinText = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString
-	or GetCoinTextureString
+-- Coin icons, for the window and chat.
 function ns.coins(copper)
-	return coinText and coinText(copper) or ns.money(copper)
+	return C_CurrencyInfo.GetCoinTextureString(copper)
 end
 
 -- Saved data can be from an older version or edited by hand, so anything

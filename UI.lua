@@ -81,14 +81,6 @@ local function search(o)
 	end
 end
 
-local function insertLink(link)
-	local insert = ChatFrameUtil and ChatFrameUtil.InsertLink
-		or ChatEdit_InsertLink
-	if insert then
-		insert(link)
-	end
-end
-
 local function rowEnter(row)
 	if not row.option then
 		return
@@ -112,7 +104,7 @@ local function rowClick(row)
 		return
 	end
 	if IsModifiedClick("CHATLINK") then
-		return insertLink(o.link)
+		return ChatFrameUtil.InsertLink(o.link)
 	end
 	search(o)
 end

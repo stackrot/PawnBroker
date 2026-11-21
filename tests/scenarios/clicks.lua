@@ -18,3 +18,12 @@ for _, r in ipairs(NS.ui.rows) do
 	end
 end
 assert(NS.ui.status.text:find("Open the AH"), NS.ui.status.text)
+-- Shift-click links the item in chat, with the AH open or not.
+IsModifiedClick = function() return true end
+for _, r in ipairs(NS.ui.rows) do
+	if r.shown and r.option then
+		r.scripts.OnClick(r)
+		assert(LINKED == r.option.link, tostring(LINKED))
+		break
+	end
+end

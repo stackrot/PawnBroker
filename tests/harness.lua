@@ -69,6 +69,7 @@ UISpecialFrames = {}
 GameTooltip = widget()
 function GameTooltip_Hide() end
 function IsModifiedClick() return false end
+ChatFrameUtil = { InsertLink = function(link) LINKED = link end }
 PawnIgnoreStatValue = -1000000
 function fire(e, ...)
 	for _, f in ipairs(frames) do
